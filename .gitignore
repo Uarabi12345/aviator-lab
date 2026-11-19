@@ -1,0 +1,6 @@
+node_modules/
+.env
+data/balances.json
+data/withdrawals.json
+*.log
+.DS_Store
