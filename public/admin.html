@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Falcon Aviator — Admin</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <style>
 :root { --bg: #0b0f19; --panel: rgba(20, 25, 40, 0.85); --border: rgba(255, 255, 255, 0.08); --red: #ff3344; --green: #22dd77; --text: #ffffff; --muted: #8b92a5; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,15 +49,8 @@ code { background: rgba(255,255,255,.1); padding: 2px 6px; border-radius: 4px; f
 .snd-btns .btn { flex: 1; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-/* NEW: Media Library Styles */
-.lib-item { display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.2); padding:10px 12px; border-radius:8px; margin-bottom:8px; border: 1px solid var(--border); transition: border-color 0.2s; }
-.lib-item.active { border-color: var(--green); background: rgba(34,221,119,0.05); }
-.lib-info { flex:1; min-width:0; margin-right: 12px; }
-.lib-name { font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.lib-date { font-size:11px; color:var(--muted); margin-top: 2px; }
-.lib-actions { display:flex; gap:8px; flex-shrink:0; }
-.btn-sm { padding:6px 12px; font-size:11px; border-radius: 6px; }
-
+.plane-preview { display: flex; align-items: center; justify-content: center; height: 110px; margin-bottom: 12px; background: rgba(0,0,0,.3); border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); font-size: 12px; }
+.plane-preview img { max-height: 90px; max-width: 160px; object-fit: contain; }
 .stats-grid.second { margin-top: 12px; }
 .table-scroll { overflow-x: auto; }
 .bal-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
@@ -121,16 +116,14 @@ code { background: rgba(255,255,255,.1); padding: 2px 6px; border-radius: 4px; f
   </div>
 
   <div class="card">
-    <h2>Game Sounds Library</h2>
-    <p class="note">🎵 Upload background music and a custom crash sound. Players set their own volume. Changes reach players instantly. Click "Set Active" to switch, or "Delete" to remove permanently.</p>
-
+    <h2>Game Sounds</h2>
+    <p class="note">🎵 Upload background music and a custom crash sound. Players set their own volume. Changes reach players instantly.</p>
     <div class="snd-row">
       <div class="snd-title">Background Music</div>
       <input type="file" id="snd_music_file" accept="audio/*">
       <button class="btn red" id="snd_music_up" onclick="uploadSound('music')" style="width:100%; margin-top:8px;">Upload New Music</button>
       <div id="music_library" style="margin-top: 16px;"></div>
     </div>
-
     <div class="snd-row" style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 24px;">
       <div class="snd-title">Crash Sound</div>
       <input type="file" id="snd_crash_file" accept="audio/*">
@@ -140,11 +133,37 @@ code { background: rgba(255,255,255,.1); padding: 2px 6px; border-radius: 4px; f
   </div>
 
   <div class="card">
-    <h2>Plane Image Library</h2>
-    <p class="note">✈️ Upload a plane picture. A transparent PNG looks best. The plane must face RIGHT. Click "Set Active" to switch, or "Delete" to remove permanently.</p>
-    <input type="file" id="plane_file" accept="image/png,image/webp,image/gif,image/jpeg">
-    <button class="btn red" id="plane_up" onclick="uploadPlane()" style="width:100%; margin-top:8px;">Upload New Plane</button>
-    <div id="plane_library" style="margin-top: 16px;"></div>
+    <h2>Plane Image (with Cropper)</h2>
+    <p class="note">✈️ Upload a plane picture. Use the cropper to select the exact size and area.</p>
+    <input type="file" id="plane_file" accept="image/png,image/webp,image/jpeg" onchange="openCropper(this)">
+    
+    <div id="cropperModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
+      <div style="max-width:90%; max-height:80vh; margin-bottom:20px;">
+        <img id="imageToCrop" style="max-width:100%; max-height:80vh; display:block;">
+      </div>
+      <div style="display:flex; gap:10px;">
+        <button class="btn danger" onclick="closeCropper()">Cancel</button>
+        <button class="btn green" onclick="cropAndUpload()">Crop & Upload</button>
+      </div>
+    </div>
+
+    <div class="plane-preview" id="planePreview" style="margin-top:16px;">Checking…</div>
+    <div class="snd-status" id="plane_status" style="margin-top:8px;"></div>
+  </div>
+
+  <div class="card">
+    <h2>Sub-Admin Management</h2>
+    <p class="note">👥 Review and approve sub-admin registration requests.</p>
+    <table>
+      <thead><tr><th>Name</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead>
+      <tbody id="subAdminList"></tbody>
+    </table>
+  </div>
+
+  <div class="card" style="border-color: #ef4444;">
+    <h2 style="color: #ef4444;">⚠️ Danger Zone: Reset All Data</h2>
+    <p class="warn">This will reset ALL player balances, deposits, withdrawals, and fees to zero. <br><b>It will NOT affect the game engine, seeds, or outcome preview.</b></p>
+    <button class="btn danger" onclick="resetAllData()" style="width:100%;">RESET ALL PLAYER DATA</button>
   </div>
 
   <div class="card" id="balTools">
@@ -202,10 +221,7 @@ async function refreshPreview() {
     const j = await r.json();
     if (!r.ok) return;
     document.getElementById('preview').innerHTML = j.upcoming.map(u => `
-      <div class="preview-box">
-        <div class="pos">ROUND #${u.position}</div>
-        <div class="val">${u.crash.toFixed(2)}x</div>
-      </div>
+      <div class="preview-box"><div class="pos">ROUND #${u.position}</div><div class="val">${u.crash.toFixed(2)}x</div></div>
     `).join('');
   } catch(e) {}
 }
@@ -241,68 +257,91 @@ async function removeAdmin(token) {
   refreshAdmins();
 }
 
-// --- NEW: Media Library Functions ---
-
-async function refreshLibraries() {
-  try {
-    const rMusic = await fetch('/api/admin/media/music', { headers: authHeader });
-    const jMusic = await rMusic.json();
-    renderLibrary('music', jMusic.items || []);
-
-    const rCrash = await fetch('/api/admin/media/crash', { headers: authHeader });
-    const jCrash = await rCrash.json();
-    renderLibrary('crash', jCrash.items || []);
-
-    const rPlane = await fetch('/api/admin/media/plane', { headers: authHeader });
-    const jPlane = await rPlane.json();
-    renderLibrary('plane', jPlane.items || []);
-  } catch (e) {}
+// ───────────── Image Cropper Logic ─────────────
+let cropper = null;
+function openCropper(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('imageToCrop').src = e.target.result;
+    document.getElementById('cropperModal').style.display = 'flex';
+    if (cropper) cropper.destroy();
+    cropper = new Cropper(document.getElementById('imageToCrop'), { aspectRatio: 16 / 9, viewMode: 1 });
+  };
+  reader.readAsDataURL(file);
 }
 
-function renderLibrary(kind, items) {
-  const container = document.getElementById(kind + '_library');
-  if (!items || !items.length) {
-    container.innerHTML = `<div style="font-size:12px; color:var(--muted); padding:8px;">No files uploaded yet.</div>`;
-    return;
-  }
-  
-  container.innerHTML = items.map(item => `
-    <div class="lib-item ${item.isActive ? 'active' : ''}">
-      <div class="lib-info">
-        <div class="lib-name">${item.name}</div>
-        <div class="lib-date">${new Date(item.uploadedAt).toLocaleDateString()}</div>
-      </div>
-      <div class="lib-actions">
-        ${item.isActive 
-          ? `<span class="btn-sm" style="background:rgba(34,221,119,0.1); color:var(--green); border:1px solid rgba(34,221,119,0.3); cursor:default;">ACTIVE</span>` 
-          : `<button class="btn green btn-sm" onclick="activateMedia('${kind}', '${item.id}')">Set Active</button>`
-        }
-        <button class="btn danger btn-sm" onclick="deleteMedia('${kind}', '${item.id}')">Delete</button>
-      </div>
-    </div>
-  `).join('');
+function closeCropper() {
+  document.getElementById('cropperModal').style.display = 'none';
+  if (cropper) { cropper.destroy(); cropper = null; }
+  document.getElementById('plane_file').value = '';
 }
 
-async function activateMedia(kind, id) {
-  if (!confirm('Set this file as active for all players?')) return;
-  try {
-    const r = await fetch(`/api/admin/media/${kind}/${id}/activate`, { method: 'POST', headers: authHeader });
-    if (!r.ok) throw new Error('Failed');
-    refreshLibraries();
-  } catch (e) {
-    alert('Network error.');
-  }
+async function cropAndUpload() {
+  if (!cropper) return;
+  const btn = event.target;
+  btn.textContent = 'Processing...'; btn.disabled = true;
+  const canvas = cropper.getCroppedCanvas({ maxWidth: 4096, maxHeight: 4096, fillColor: '#fff', imageSmoothingEnabled: true, imageSmoothingQuality: 'high' });
+  canvas.toBlob(async (blob) => {
+    const file = new File([blob], "cropped-plane.png", { type: "image/png" });
+    try {
+      const r = await fetch('/api/admin/plane', {
+        method: 'POST',
+        headers: { 'content-type': 'image/png', 'x-admin-password': encodeURIComponent(password), 'x-file-name': encodeURIComponent("cropped-plane.png") },
+        body: file
+      });
+      const j = await r.json();
+      if (r.ok) { alert('Cropped image uploaded successfully!'); closeCropper(); refreshPlane(); }
+      else alert(j.error || 'Upload failed');
+    } catch (e) { alert('Network error while uploading.'); }
+    btn.textContent = 'Crop & Upload'; btn.disabled = false;
+  }, 'image/png');
 }
 
-async function deleteMedia(kind, id) {
-  if (!confirm('Permanently delete this file? This cannot be undone.')) return;
+// ───────────── Sub-Admin Logic ─────────────
+async function refreshSubAdmins() {
+  if (role !== 'super') return;
+  const r = await fetch('/api/admin/sub-admins', { headers: authHeader });
+  const j = await r.json();
+  if (!r.ok) return;
+  document.getElementById('subAdminList').innerHTML = j.subAdmins.map(a => `
+    <tr>
+      <td>${a.name}</td><td>${a.phone}</td>
+      <td><span style="color:${a.status === 'active' ? '#22dd77' : '#fbbf24'}">${a.status.toUpperCase()}</span></td>
+      <td>
+        ${a.status === 'pending' ? `<button class="btn green" style="padding:6px 12px; font-size:11px;" onclick="approveSubAdmin('${a.id}')">Approve</button>` : ''}
+        <button class="btn danger" style="padding:6px 12px; font-size:11px;" onclick="deleteSubAdmin('${a.id}')">Delete</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="4" style="color:#666; text-align:center;">No sub-admins registered yet.</td></tr>';
+}
+
+async function approveSubAdmin(id) {
+  if (!confirm('Approve this sub-admin? They will be able to see the preview panel.')) return;
+  await fetch('/api/admin/sub-admins/approve', { method: 'POST', headers: { 'content-type': 'application/json', ...authHeader }, body: JSON.stringify({ id }) });
+  refreshSubAdmins();
+}
+
+async function deleteSubAdmin(id) {
+  if (!confirm('Delete this sub-admin permanently?')) return;
+  await fetch('/api/admin/sub-admins', { method: 'DELETE', headers: { 'content-type': 'application/json', ...authHeader }, body: JSON.stringify({ id }) });
+  refreshSubAdmins();
+}
+
+async function resetAllData() {
+  const word = prompt('DANGER: This resets ALL balances, deposits, and withdrawals to 0.\nGame engine seeds will be preserved.\n\nType RESET_ALL to continue:');
+  if (word !== 'RESET_ALL') return;
   try {
-    const r = await fetch(`/api/admin/media/${kind}/${id}`, { method: 'DELETE', headers: authHeader });
-    if (!r.ok) throw new Error('Failed');
-    refreshLibraries();
-  } catch (e) {
-    alert('Network error.');
-  }
+    const r = await fetch('/api/admin/reset-all-data', {
+      method: 'POST', headers: { 'content-type': 'application/json', ...authHeader },
+      body: JSON.stringify({ confirm: 'RESET_ALL' })
+    });
+    const j = await r.json();
+    if (!r.ok) return alert(j.error || 'Reset failed');
+    alert(j.message);
+    refreshStats(); refreshPlayers(); refreshWithdrawals();
+  } catch (e) { alert('Network error.'); }
 }
 
 function guessAudioType(name) {
@@ -321,19 +360,52 @@ async function uploadSound(kind) {
   btn.disabled = true; btn.textContent = 'Uploading…';
   try {
     const r = await fetch('/api/admin/audio/' + kind, {
-      method: 'POST',
-      headers: { 'content-type': type, 'x-admin-password': encodeURIComponent(password), 'x-file-name': encodeURIComponent(f.name) },
-      body: f
+      method: 'POST', headers: { 'content-type': type, 'x-admin-password': encodeURIComponent(password), 'x-file-name': encodeURIComponent(f.name) }, body: f
     });
-    let j = {};
-    try { j = await r.json(); } catch (e) {}
+    let j = {}; try { j = await r.json(); } catch (e) {}
     if (!r.ok) alert(j.error || ('Upload failed (' + r.status + ')'));
     else { input.value = ''; alert('Uploaded. Players will hear it right away.'); }
-  } catch (e) {
-    alert('Network error while uploading.');
-  }
+  } catch (e) { alert('Network error while uploading.'); }
   btn.disabled = false; btn.textContent = 'Upload';
   refreshLibraries();
+}
+
+async function refreshLibraries() {
+  try {
+    const rMusic = await fetch('/api/admin/media/music', { headers: authHeader });
+    const jMusic = await rMusic.json();
+    renderLibrary('music', jMusic.items || []);
+    const rCrash = await fetch('/api/admin/media/crash', { headers: authHeader });
+    const jCrash = await rCrash.json();
+    renderLibrary('crash', jCrash.items || []);
+  } catch (e) {}
+}
+
+function renderLibrary(kind, items) {
+  const container = document.getElementById(kind + '_library');
+  if (!items || !items.length) { container.innerHTML = `<div style="font-size:12px; color:var(--muted); padding:8px;">No files uploaded yet.</div>`; return; }
+  container.innerHTML = items.map(item => `
+    <div class="lib-item ${item.isActive ? 'active' : ''}" style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.2); padding:10px 12px; border-radius:8px; margin-bottom:8px; border: 1px solid var(--border);">
+      <div style="flex:1; min-width:0; margin-right: 12px;">
+        <div style="font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
+        <div style="font-size:11px; color:var(--muted); margin-top: 2px;">${new Date(item.uploadedAt).toLocaleDateString()}</div>
+      </div>
+      <div style="display:flex; gap:8px; flex-shrink:0;">
+        ${item.isActive ? `<span style="padding:6px 12px; font-size:11px; border-radius:6px; background:rgba(34,221,119,0.1); color:var(--green); border:1px solid rgba(34,221,119,0.3); cursor:default;">ACTIVE</span>` : `<button class="btn green" style="padding:6px 12px; font-size:11px; border-radius:6px;" onclick="activateMedia('${kind}', '${item.id}')">Set Active</button>`}
+        <button class="btn danger" style="padding:6px 12px; font-size:11px; border-radius:6px;" onclick="deleteMedia('${kind}', '${item.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function activateMedia(kind, id) {
+  if (!confirm('Set this file as active for all players?')) return;
+  try { await fetch(`/api/admin/media/${kind}/${id}/activate`, { method: 'POST', headers: authHeader }); refreshLibraries(); } catch (e) { alert('Network error.'); }
+}
+
+async function deleteMedia(kind, id) {
+  if (!confirm('Permanently delete this file? This cannot be undone.')) return;
+  try { await fetch(`/api/admin/media/${kind}/${id}`, { method: 'DELETE', headers: authHeader }); refreshLibraries(); } catch (e) { alert('Network error.'); }
 }
 
 function guessImageType(name) {
@@ -352,27 +424,35 @@ async function uploadPlane() {
   btn.disabled = true; btn.textContent = 'Uploading…';
   try {
     const r = await fetch('/api/admin/plane', {
-      method: 'POST',
-      headers: { 'content-type': type, 'x-admin-password': encodeURIComponent(password), 'x-file-name': encodeURIComponent(f.name) },
-      body: f
+      method: 'POST', headers: { 'content-type': type, 'x-admin-password': encodeURIComponent(password), 'x-file-name': encodeURIComponent(f.name) }, body: f
     });
-    let j = {};
-    try { j = await r.json(); } catch (e) {}
+    let j = {}; try { j = await r.json(); } catch (e) {}
     if (!r.ok) alert(j.error || ('Upload failed (' + r.status + ')'));
     else { input.value = ''; alert('Uploaded. Players will see the new plane right away.'); }
-  } catch (e) {
-    alert('Network error while uploading.');
-  }
+  } catch (e) { alert('Network error while uploading.'); }
   btn.disabled = false; btn.textContent = 'Upload';
-  refreshLibraries();
+  refreshPlane();
 }
 
-refreshLibraries();
-
-function fmtTime(ts) {
-  if (!ts) return '—';
-  try { return new Date(ts).toLocaleString(); } catch (e) { return '—'; }
+async function refreshPlane() {
+  try {
+    const r = await fetch('/api/plane/info');
+    const j = await r.json();
+    const box = document.getElementById('planePreview');
+    const st = document.getElementById('plane_status');
+    box.innerHTML = '';
+    if (j && j.url) {
+      const img = document.createElement('img'); img.src = j.url; img.alt = 'Current plane'; box.appendChild(img);
+      st.textContent = 'Current file: ' + (j.name || 'uploaded image');
+    } else {
+      box.textContent = 'No plane uploaded';
+      st.textContent = 'None uploaded — the arrowhead is used.';
+    }
+  } catch (e) {}
 }
+refreshPlane();
+
+function fmtTime(ts) { if (!ts) return '—'; try { return new Date(ts).toLocaleString(); } catch (e) { return '—'; } }
 
 async function refreshPlayers() {
   try {
@@ -384,43 +464,29 @@ async function refreshPlayers() {
     `).join('') || '<tr><td colspan="5" style="color:#666">No players yet.</td></tr>';
   } catch (e) {}
 }
-setInterval(refreshPlayers, 5000);
-refreshPlayers();
+setInterval(refreshPlayers, 5000); refreshPlayers();
 
 async function resetOne() {
   const phone = document.getElementById('resetPhone').value.trim();
   if (!phone) return alert('Enter the player phone number.');
   if (!confirm('Set the balance of ' + phone + ' to 0?')) return;
   try {
-    const r = await fetch('/api/admin/balance/reset', {
-      method: 'POST', headers: { 'content-type': 'application/json', ...authHeader },
-      body: JSON.stringify({ password, phone })
-    });
+    const r = await fetch('/api/admin/balance/reset', { method: 'POST', headers: { 'content-type': 'application/json', ...authHeader }, body: JSON.stringify({ password, phone }) });
     const j = await r.json();
     if (!r.ok) return alert(j.error || 'Reset failed');
-    alert('Done. Balance set to 0.');
-    document.getElementById('resetPhone').value = '';
-    refreshPlayers();
-  } catch (e) {
-    alert('Network error.');
-  }
+    alert('Done. Balance set to 0.'); document.getElementById('resetPhone').value = ''; refreshPlayers();
+  } catch (e) { alert('Network error.'); }
 }
 
 async function resetAll() {
   const word = prompt('This sets EVERY player balance to 0 and cannot be undone.\n\nType RESET to continue:');
   if (word !== 'RESET') return;
   try {
-    const r = await fetch('/api/admin/balance/reset-all', {
-      method: 'POST', headers: { 'content-type': 'application/json', ...authHeader },
-      body: JSON.stringify({ password, confirm: 'RESET' })
-    });
+    const r = await fetch('/api/admin/balance/reset-all', { method: 'POST', headers: { 'content-type': 'application/json', ...authHeader }, body: JSON.stringify({ password, confirm: 'RESET' }) });
     const j = await r.json();
     if (!r.ok) return alert(j.error || 'Reset failed');
-    alert('Done. ' + j.reset + ' player balance(s) set to 0.');
-    refreshPlayers();
-  } catch (e) {
-    alert('Network error.');
-  }
+    alert('Done. ' + j.reset + ' player balance(s) set to 0.'); refreshPlayers();
+  } catch (e) { alert('Network error.'); }
 }
 
 async function refreshWithdrawals() {
@@ -430,20 +496,12 @@ async function refreshWithdrawals() {
     if (!r.ok) return;
     document.getElementById('withdrawalsList').innerHTML = (j.withdrawals || []).map(w => {
       const canAct = w.status === 'pending' || w.status === 'processing';
-      const statusColor = w.status === 'pending' ? '#fbbf24'
-        : (w.status === 'paid' || w.status === 'approved') ? '#22dd77'
-        : (w.status === 'rejected' || w.status === 'failed') ? '#ff3344'
-        : '#8b92a5';
+      const statusColor = w.status === 'pending' ? '#fbbf24' : (w.status === 'paid' || w.status === 'approved') ? '#22dd77' : (w.status === 'rejected' || w.status === 'failed') ? '#ff3344' : '#8b92a5';
       return `<tr>
-        <td>${w.playerId}</td>
-        <td>${w.phone}</td>
-        <td>${w.amount} KES</td>
+        <td>${w.playerId}</td><td>${w.phone}</td><td>${w.amount} KES</td>
         <td><b style="color:${statusColor}">${w.status}</b>${w.paidManually ? ' <small style="color:#8b92a5">(manual)</small>' : ''}${w.feeRefunded ? ' <small style="color:#8b92a5">(fee refunded)</small>' : ''}</td>
         <td>${fmtTime(w.createdAt)}</td>
-        <td>
-          ${canAct ? `<button class="btn green" onclick="markPaidWd('${w.id}')">Mark Paid</button>
-                      <button class="btn danger" onclick="rejectWd('${w.id}')">Reject</button>` : '—'}
-        </td>
+        <td>${canAct ? `<button class="btn green" onclick="markPaidWd('${w.id}')">Mark Paid</button><button class="btn danger" onclick="rejectWd('${w.id}')">Reject</button>` : '—'}</td>
       </tr>`;
     }).join('') || '<tr><td colspan="6" style="color:#666">No withdrawal requests.</td></tr>';
   } catch (e) {}
@@ -451,10 +509,7 @@ async function refreshWithdrawals() {
 
 async function markPaidWd(id) {
   if (!confirm('Have you ALREADY sent the full amount to this player on your phone?\n\nOnly click OK if you have sent the money. This will close the request WITHOUT refunding the balance.')) return;
-  const r = await fetch('/api/admin/withdrawals/mark-paid', {
-    method: 'POST', headers: { 'content-type': 'application/json', ...authHeader },
-    body: JSON.stringify({ password, id })
-  });
+  const r = await fetch('/api/admin/withdrawals/mark-paid', { method: 'POST', headers: { 'content-type': 'application/json', ...authHeader }, body: JSON.stringify({ password, id }) });
   const j = await r.json();
   if (!r.ok) alert(j.error || 'Mark Paid failed');
   refreshWithdrawals();
@@ -464,16 +519,15 @@ async function rejectWd(id) {
   const alsoFee = confirm('Reject this withdrawal and refund the AMOUNT to the player\'s balance?\n\nIf you also want to refund the 300 KES fee, click OK again on the next prompt.');
   if (!alsoFee) return;
   const refundFee = confirm('Refund the 300 KES fee as well?');
-  const r = await fetch('/api/admin/withdrawals/reject', {
-    method: 'POST', headers: { 'content-type': 'application/json', ...authHeader },
-    body: JSON.stringify({ password, id, refundFee })
-  });
+  const r = await fetch('/api/admin/withdrawals/reject', { method: 'POST', headers: { 'content-type': 'application/json', ...authHeader }, body: JSON.stringify({ password, id, refundFee }) });
   const j = await r.json();
   if (!r.ok) alert(j.error || 'Reject failed');
   refreshWithdrawals();
 }
-setInterval(refreshWithdrawals, 5000);
-refreshWithdrawals();
+setInterval(refreshWithdrawals, 5000); refreshWithdrawals();
+
+// Call these on load
+refreshSubAdmins();
 </script>
 </body>
 </html>

@@ -521,8 +521,8 @@ const ui = {
   2: { bet: $('bet2'), cash: $('cash2'), amt: $('amount2'), auto: $('auto2') }
 };
 
-let autoActive1 = false, autoActive2 = false, hideTimerTimeout; 
-let soundMuted = false;
+let autoActive1 = false, autoActive2 = false, hideTimerTimeout;
+let activeBetAmount = { 1: 0, 2: 0 };let soundMuted = false;
 let withdrawTimer, depositTimer;
 
 function toggleSound() {
@@ -817,16 +817,27 @@ ws.onmessage = e => {
 
   if (type === 'countdown') { timerEl.textContent = data.seconds > 0 ? `Next game starts in ${data.seconds}s` : `Taking off...`; }
 
-  if (type === 'tick') {
+    if (type === 'tick') {
     multEl.textContent = data.multiplier.toFixed(2) + 'x';
-    if (data.multiplier >= 10) { multEl.className = 'multiplier high'; }
+    
+    // Live cashout counting - updates button as multiplier rises
+    if (!ui[1].cash.disabled && activeBetAmount[1] > 0) {
+      ui[1].cash.textContent = `Cashout ${Math.floor(activeBetAmount[1] * data.multiplier)}`;
+    }
+    if (!ui[2].cash.disabled && activeBetAmount[2] > 0) {
+      ui[2].cash.textContent = `Cashout ${Math.floor(activeBetAmount[2] * data.multiplier)}`;
+    }    if (data.multiplier >= 10) { multEl.className = 'multiplier high'; }
     else if (data.multiplier >= 4) { multEl.className = 'multiplier mid'; }
     
     if (data.state === 'crashed') {
       multEl.className = 'multiplier crashed'; stageEl.classList.add('crashed');
       ui[1].cash.disabled = true; ui[2].cash.disabled = true;
-      autoActive1 = false; autoActive2 = false; playSound('crash'); 
+      autoActive1 = false; autoActive2 = false; playSound('crash');
       
+      // Reset cashout buttons
+      ui[1].cash.textContent = 'Cashout';
+      ui[2].cash.textContent = 'Cashout';
+      activeBetAmount[1] = 0; activeBetAmount[2] = 0;      
       // Make the plane zoom off the screen "peeeeeewwww!"
       planeEl.classList.add('fly-away');
       planeImgEl.classList.add('fly-away');
@@ -917,8 +928,12 @@ ws.onmessage = e => {
       if (histData.length > 10) histData.pop();
       localStorage.setItem('betHistory', JSON.stringify(histData));
       
-      if (slot === 1) autoActive1 = false;
+        if (slot === 1) autoActive1 = false;
       if (slot === 2) autoActive2 = false;
+      
+      // Reset cashout button
+      ui[slot].cash.textContent = 'Cashout';
+      activeBetAmount[slot] = 0;
     }
   }
 };
@@ -941,7 +956,7 @@ function updateTrail(mult) {
   planeEl.style.top = (tipY / H * 100) + '%';
   const angle = Math.atan2(tipY - sy, tipX - sx) * 180 / Math.PI;
   // Fixed: Removed "+ 180" so the plane faces forward (up and right)
-  const rotation = angle; 
+    const rotation = angle + 180;  
   planeEl.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
   planeImgEl.style.left = planeEl.style.left;
   planeImgEl.style.top = planeEl.style.top;
@@ -951,16 +966,25 @@ function updateTrail(mult) {
 function resetTrail() {
   trailLine.setAttribute('d', ''); trailArea.setAttribute('d', '');
   planeEl.style.left = '5.5%'; planeEl.style.top = '87%';
-  planeEl.style.transform = 'translate(-50%, -50%) rotate(-22deg)';
+  planeEl.style.transform = 'translate(-50%, -50%) rotate(158deg)';
   planeImgEl.style.left = '5.5%'; planeImgEl.style.top = '87%';
-  planeImgEl.style.transform = 'translate(-50%, -50%) rotate(-22deg)';
+  planeImgEl.style.transform = 'translate(-50%, -50%) rotate(158deg)';
 }
 
-ui[1].bet.onclick = () => ws.send(JSON.stringify({ type: 'bet', amount: Number(ui[1].amt.value), slot: 1 }));
+ui[1].bet.onclick = () => {
+  const betAmount = Number(ui[1].amt.value);
+  activeBetAmount[1] = betAmount;
+  ui[1].cash.textContent = `Cashout ${betAmount}`;
+  ws.send(JSON.stringify({ type: 'bet', amount: betAmount, slot: 1 }));
+};
 ui[1].cash.onclick = () => ws.send(JSON.stringify({ type: 'cashout', slot: 1 }));
-ui[2].bet.onclick = () => ws.send(JSON.stringify({ type: 'bet', amount: Number(ui[2].amt.value), slot: 2 }));
+ui[2].bet.onclick = () => {
+  const betAmount = Number(ui[2].amt.value);
+  activeBetAmount[2] = betAmount;
+  ui[2].cash.textContent = `Cashout ${betAmount}`;
+  ws.send(JSON.stringify({ type: 'bet', amount: betAmount, slot: 2 }));
+};
 ui[2].cash.onclick = () => ws.send(JSON.stringify({ type: 'cashout', slot: 2 }));
-
 let toastTimer;
 function showToast(text) { toast.textContent = text; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 3000); }
 
