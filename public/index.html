@@ -224,326 +224,160 @@ svg.grid { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .05
 
 .plane-img { display: none; object-fit: contain; }
 /* ═══════════════════════════════════════════════════════════════
-   MOBILE-FIRST AVIATOR OPTIMIZATION
+   TRUE AVIATOR MOBILE SINGLE-SCREEN LAYOUT
    ═══════════════════════════════════════════════════════════════ */
-
 @media (max-width: 768px) {
-  /* Force full-screen game experience */
+  /* Force true single-screen, no scroll */
   body {
+    height: 100dvh; /* Dynamic viewport height for mobile browsers */
+    overflow: hidden;
     padding: 0;
-    overflow-x: hidden;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
   }
 
   .app-container {
+    flex: 1;
+    display: flex;
     flex-direction: column;
-    height: auto;
-    gap: 8px;
-    margin-top: 50px;
-    padding: 8px;
+    height: 100%;
+    margin-top: 0;
+    padding: 4px;
+    gap: 4px;
   }
 
   .game-section {
-    width: 100%;
-    gap: 8px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 0; /* Crucial for flexbox shrinking */
   }
 
-  /* Compact header for mobile */
+  /* Ultra-compact header */
   header {
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    padding: 8px 4px;
-    gap: 8px;
+    padding: 4px 6px;
+    gap: 4px;
   }
 
   .logo {
-    font-size: 16px;
-    gap: 6px;
+    font-size: 14px;
+    gap: 4px;
   }
-
-  .logo .dot {
-    width: 10px;
-    height: 10px;
-  }
+  .logo .dot { width: 8px; height: 8px; }
 
   .wallet-actions {
     gap: 4px;
     flex-wrap: nowrap;
   }
 
-  .btn-wallet {
-    padding: 6px 10px;
+  .btn-wallet, .logout-btn {
+    padding: 5px 8px;
+    font-size: 10px;
+    border-radius: 4px;
+  }
+
+  /* Game stage takes ALL remaining space */
+  .stage {
+    flex: 1;
+    min-height: 0;
+    border-radius: 8px;
+  }
+
+  .multiplier {
+    font-size: 48px; /* Smaller so it fits */
+    letter-spacing: -2px;
+    top: 30%;
+  }
+
+  .state {
+    font-size: 9px;
+    letter-spacing: 2px;
+    top: 40%;
+  }
+
+  .timer { font-size: 14px; margin-top: 4px; }
+
+  .balance {
+    top: 8px;
+    right: 8px;
+    font-size: 8px;
+  }
+  .balance strong { font-size: 16px; }
+
+  .plane { width: 35px; height: 25px; }
+
+  /* Compact history */
+  .history {
+    padding: 4px 8px;
+    gap: 6px;
+    border-radius: 8px;
+  }
+  .history h3 { font-size: 9px; }
+  .pill { padding: 3px 8px; font-size: 11px; }
+
+  /* Tightly packed bet controls */
+  .controls {
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+  }
+
+  .bet-panel {
+    padding: 6px;
+    gap: 4px;
+    border-radius: 8px;
+    align-items: center;
+  }
+
+  .field { gap: 2px; min-width: 0; }
+  .field label { font-size: 8px; }
+  .field input { 
+    padding: 6px 4px; 
+    font-size: 13px; 
+    border-radius: 6px; 
+    text-align: center;
+  }
+  .field.auto-field { flex: 0.4; }
+
+  .presets { gap: 2px; margin-top: 2px; }
+  .preset-btn { font-size: 9px; padding: 2px; }
+
+  .bet-panel .btn {
+    padding: 8px 4px;
     font-size: 11px;
     border-radius: 6px;
   }
 
-  .logout-btn {
-    padding: 6px 10px;
-    font-size: 10px;
-  }
-
-  /* Full-width game stage */
-  .stage {
-    min-height: 280px;
-    height: 50vh;
-    border-radius: 16px;
-  }
-
-  .multiplier {
-    font-size: 72px;
-    letter-spacing: -3px;
-    top: 35%;
-  }
-
-  .state {
-    font-size: 10px;
-    letter-spacing: 4px;
-    top: 45%;
-  }
-
-  .timer {
-    font-size: 16px;
-    margin-top: 8px;
-  }
-
-  .balance {
-    top: 12px;
-    right: 12px;
-    font-size: 9px;
-  }
-
-  .balance strong {
-    font-size: 20px;
-  }
-
-  .plane {
-    width: 40px;
-    height: 30px;
-  }
-
-  /* Compact betting controls */
-  .controls {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-
-  .bet-panel {
-    padding: 10px;
-    gap: 8px;
-    border-radius: 12px;
-  }
-
-  .field {
-    gap: 4px;
-  }
-
-  .field label {
-    font-size: 9px;
-  }
-
-  .field input {
-    padding: 10px 8px;
-    font-size: 15px;
-    border-radius: 8px;
-  }
-
-  .field.auto-field {
-    flex: 0.3;
-    min-width: 60px;
-  }
-
-  .presets {
-    gap: 3px;
-    margin-top: 2px;
-  }
-
-  .preset-btn {
-    font-size: 10px;
-    padding: 3px;
-  }
-
-  .bet-panel .btn {
-    padding: 12px 8px;
-    font-size: 13px;
-    border-radius: 8px;
-  }
-
-  /* Compact history pills */
-  .history {
-    padding: 8px 12px;
-    gap: 10px;
-    border-radius: 12px;
-  }
-
-  .history h3 {
-    font-size: 10px;
-  }
-
-  .pill {
-    padding: 4px 10px;
-    font-size: 12px;
-  }
-
-  /* Collapsible sidebar */
+  /* Short, compact sidebar */
   .sidebar {
     width: 100%;
-    height: 350px;
-    border-radius: 16px;
+    height: 30vh; /* Takes only 30% of screen height */
+    border-radius: 8px;
   }
 
-  .sidebar-tabs {
-    border-radius: 16px 16px 0 0;
-  }
+  .sidebar-tab { padding: 8px 0; font-size: 10px; }
+  .chat-list, .feed-list, .leaderboard-list { padding: 8px; }
+  .chat-msg { font-size: 12px; }
+  .feed-item { padding: 6px 8px; font-size: 11px; }
+  
+  .chat-input-row { padding: 6px; gap: 4px; }
+  .chat-input-row input { padding: 6px 8px; font-size: 12px; }
+  .chat-send { padding: 0 10px; font-size: 16px; }
 
-  .sidebar-tab {
-    padding: 12px 0;
-    font-size: 11px;
-  }
+  /* Mobile modals */
+  .modal-box { padding: 16px; border-radius: 12px; width: 95%; }
+  .modal-title { font-size: 16px; }
+  .modal-desc { font-size: 11px; margin-bottom: 12px; }
+  .modal-box input { padding: 10px; font-size: 14px; }
+  .modal-actions .btn { padding: 10px; font-size: 12px; }
 
-  .chat-list, .feed-list, .leaderboard-list {
-    padding: 12px;
-  }
-
-  .chat-msg {
-    font-size: 13px;
-  }
-
-  .chat-input-row {
-    padding: 10px;
-    gap: 6px;
-  }
-
-  .chat-input-row input {
-    padding: 8px 10px;
-    font-size: 13px;
-  }
-
-  .chat-send {
-    padding: 0 12px;
-    font-size: 18px;
-  }
-
-  .feed-item {
-    padding: 8px 12px;
-    font-size: 12px;
-  }
-
-  .leader-item {
-    padding: 10px;
-    gap: 10px;
-  }
-
-  .leader-item .rank {
-    font-size: 18px;
-    width: 20px;
-  }
-
-  .leader-item .name {
-    font-size: 13px;
-  }
-
-  .leader-item .amt {
-    font-size: 14px;
-  }
-
-  /* Mobile-friendly modals */
-  .modal-box {
-    padding: 20px;
-    border-radius: 20px;
-    max-width: 95%;
-  }
-
-  .modal-title {
-    font-size: 18px;
-  }
-
-  .modal-desc {
-    font-size: 12px;
-  }
-
-  .modal-box input {
-    padding: 14px;
-    font-size: 16px;
-  }
-
-  .modal-actions {
-    gap: 8px;
-  }
-
-  .modal-actions .btn {
-    padding: 12px;
-    font-size: 13px;
-  }
-
-  /* Flash ticker for mobile */
-  .flash-ticker-wrap {
-    top: 110px;
-    left: 8px;
-    width: calc(100% - 16px);
-    height: 40px;
-  }
-
-  .flash-item {
-    padding: 8px 16px;
-    font-size: 12px;
-  }
-
-  /* Toast for mobile */
-  .toast {
-    bottom: 20px;
-    padding: 12px 24px;
-    font-size: 13px;
-    border-radius: 12px;
-  }
-}
-
-/* Extra small phones (iPhone SE, etc.) */
-@media (max-width: 375px) {
-  .stage {
-    min-height: 240px;
-    height: 45vh;
-  }
-
-  .multiplier {
-    font-size: 60px;
-  }
-
-  .balance strong {
-    font-size: 18px;
-  }
-
-  .bet-panel {
-    padding: 8px;
-  }
-
-  .field input {
-    padding: 8px 6px;
-    font-size: 14px;
-  }
-
-  .sidebar {
-    height: 300px;
-  }
-}
-
-/* Landscape mode on mobile */
-@media (max-width: 768px) and (orientation: landscape) {
-  .app-container {
-    margin-top: 40px;
-  }
-
-  .stage {
-    height: 60vh;
-    min-height: 200px;
-  }
-
-  .sidebar {
-    height: 250px;
-  }
-
-  .multiplier {
-    font-size: 64px;
-  }
+  .flash-ticker-wrap { top: 40px; left: 4px; width: calc(100% - 8px); height: 30px; }
+  .flash-item { padding: 4px 12px; font-size: 11px; }
+  .toast { bottom: 10px; padding: 8px 16px; font-size: 12px; border-radius: 8px; }
 }
 </style>
 </head>
