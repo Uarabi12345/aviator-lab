@@ -15,6 +15,7 @@ import { registerUploads, getUploadInfo } from './uploads.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
+app.set('trust proxy', 1); // Trust Render's proxy for rate limiting
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
