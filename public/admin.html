@@ -41,14 +41,21 @@ code { background: rgba(255,255,255,.1); padding: 2px 6px; border-radius: 4px; f
 .note { font-size: 12px; color: var(--green); margin-bottom: 12px; }
 
 .snd-row { padding: 14px 0; border-top: 1px solid var(--border); }
-.snd-title { font-weight: 800; margin-bottom: 4px; }
-.snd-status { font-size: 12px; color: var(--muted); margin-bottom: 10px; }
-.snd-btns { display: flex; gap: 10px; }
+.snd-row:first-child { border-top: none; padding-top: 0; }
+.snd-title { font-weight: 800; margin-bottom: 8px; }
+.snd-btns { display: flex; gap: 10px; margin-top: 8px; }
 .snd-btns .btn { flex: 1; }
 .btn:disabled { opacity: .5; cursor: not-allowed; }
 
-.plane-preview { display: flex; align-items: center; justify-content: center; height: 110px; margin-bottom: 12px; background: rgba(0,0,0,.3); border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); font-size: 12px; }
-.plane-preview img { max-height: 90px; max-width: 160px; object-fit: contain; }
+/* NEW: Media Library Styles */
+.lib-item { display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.2); padding:10px 12px; border-radius:8px; margin-bottom:8px; border: 1px solid var(--border); transition: border-color 0.2s; }
+.lib-item.active { border-color: var(--green); background: rgba(34,221,119,0.05); }
+.lib-info { flex:1; min-width:0; margin-right: 12px; }
+.lib-name { font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lib-date { font-size:11px; color:var(--muted); margin-top: 2px; }
+.lib-actions { display:flex; gap:8px; flex-shrink:0; }
+.btn-sm { padding:6px 12px; font-size:11px; border-radius: 6px; }
+
 .stats-grid.second { margin-top: 12px; }
 .table-scroll { overflow-x: auto; }
 .bal-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
@@ -114,40 +121,30 @@ code { background: rgba(255,255,255,.1); padding: 2px 6px; border-radius: 4px; f
   </div>
 
   <div class="card">
-    <h2>Game Sounds</h2>
-    <p class="note">🎵 Upload background music and a custom crash sound (MP3, WAV, OGG or M4A, max 15 MB each). Players set their own volume in the game. Changes reach players instantly.</p>
+    <h2>Game Sounds Library</h2>
+    <p class="note">🎵 Upload background music and a custom crash sound. Players set their own volume. Changes reach players instantly. Click "Set Active" to switch, or "Delete" to remove permanently.</p>
 
     <div class="snd-row">
       <div class="snd-title">Background Music</div>
-      <div class="snd-status" id="snd_music_status">Checking…</div>
       <input type="file" id="snd_music_file" accept="audio/*">
-      <div class="snd-btns">
-        <button class="btn red" id="snd_music_up" onclick="uploadSound('music')">Upload</button>
-        <button class="btn danger" onclick="removeSound('music')">Remove</button>
-      </div>
+      <button class="btn red" id="snd_music_up" onclick="uploadSound('music')" style="width:100%; margin-top:8px;">Upload New Music</button>
+      <div id="music_library" style="margin-top: 16px;"></div>
     </div>
 
-    <div class="snd-row">
+    <div class="snd-row" style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 24px;">
       <div class="snd-title">Crash Sound</div>
-      <div class="snd-status" id="snd_crash_status">Checking…</div>
       <input type="file" id="snd_crash_file" accept="audio/*">
-      <div class="snd-btns">
-        <button class="btn red" id="snd_crash_up" onclick="uploadSound('crash')">Upload</button>
-        <button class="btn danger" onclick="removeSound('crash')">Remove</button>
-      </div>
+      <button class="btn red" id="snd_crash_up" onclick="uploadSound('crash')" style="width:100%; margin-top:8px;">Upload New Crash Sound</button>
+      <div id="crash_library" style="margin-top: 16px;"></div>
     </div>
   </div>
 
   <div class="card">
-    <h2>Plane Image</h2>
-    <p class="note">✈️ Upload a plane picture (PNG, WebP, GIF or JPG, max 2 MB). A transparent PNG looks best. The plane must face RIGHT. The game tilts it along the curve. Players see the change instantly. With no image uploaded, the arrowhead is used.</p>
-    <div class="plane-preview" id="planePreview">Checking…</div>
-    <div class="snd-status" id="plane_status"></div>
+    <h2>Plane Image Library</h2>
+    <p class="note">✈️ Upload a plane picture. A transparent PNG looks best. The plane must face RIGHT. Click "Set Active" to switch, or "Delete" to remove permanently.</p>
     <input type="file" id="plane_file" accept="image/png,image/webp,image/gif,image/jpeg">
-    <div class="snd-btns">
-      <button class="btn red" id="plane_up" onclick="uploadPlane()">Upload</button>
-      <button class="btn danger" onclick="removePlane()">Remove</button>
-    </div>
+    <button class="btn red" id="plane_up" onclick="uploadPlane()" style="width:100%; margin-top:8px;">Upload New Plane</button>
+    <div id="plane_library" style="margin-top: 16px;"></div>
   </div>
 
   <div class="card" id="balTools">
@@ -188,7 +185,7 @@ async function refreshStats() {
     const r = await fetch('/api/admin/stats', { headers: authHeader });
     const j = await r.json();
     if (!r.ok) return;
-        document.getElementById('statDeposits').textContent = `${Number(j.totalDeposits).toLocaleString()} KES`;
+    document.getElementById('statDeposits').textContent = `${Number(j.totalDeposits).toLocaleString()} KES`;
     document.getElementById('statWithdrawals').textContent = `${Number(j.totalWithdrawals).toLocaleString()} KES`;
     document.getElementById('statWagered').textContent = `${Number(j.totalBets).toLocaleString()} KES`;
     document.getElementById('statPlayers').textContent = j.activePlayers;
@@ -244,16 +241,68 @@ async function removeAdmin(token) {
   refreshAdmins();
 }
 
-async function refreshSounds() {
+// --- NEW: Media Library Functions ---
+
+async function refreshLibraries() {
   try {
-    const r = await fetch('/api/audio/info');
-    const j = await r.json();
-    ['music', 'crash'].forEach(k => {
-      const el = document.getElementById('snd_' + k + '_status');
-      if (j[k]) el.textContent = 'Current file: ' + (j[k].name || 'uploaded file');
-      else el.textContent = k === 'crash' ? 'None uploaded — the built-in crash sound is used.' : 'None uploaded.';
-    });
+    const rMusic = await fetch('/api/admin/media/music', { headers: authHeader });
+    const jMusic = await rMusic.json();
+    renderLibrary('music', jMusic.items || []);
+
+    const rCrash = await fetch('/api/admin/media/crash', { headers: authHeader });
+    const jCrash = await rCrash.json();
+    renderLibrary('crash', jCrash.items || []);
+
+    const rPlane = await fetch('/api/admin/media/plane', { headers: authHeader });
+    const jPlane = await rPlane.json();
+    renderLibrary('plane', jPlane.items || []);
   } catch (e) {}
+}
+
+function renderLibrary(kind, items) {
+  const container = document.getElementById(kind + '_library');
+  if (!items || !items.length) {
+    container.innerHTML = `<div style="font-size:12px; color:var(--muted); padding:8px;">No files uploaded yet.</div>`;
+    return;
+  }
+  
+  container.innerHTML = items.map(item => `
+    <div class="lib-item ${item.isActive ? 'active' : ''}">
+      <div class="lib-info">
+        <div class="lib-name">${item.name}</div>
+        <div class="lib-date">${new Date(item.uploadedAt).toLocaleDateString()}</div>
+      </div>
+      <div class="lib-actions">
+        ${item.isActive 
+          ? `<span class="btn-sm" style="background:rgba(34,221,119,0.1); color:var(--green); border:1px solid rgba(34,221,119,0.3); cursor:default;">ACTIVE</span>` 
+          : `<button class="btn green btn-sm" onclick="activateMedia('${kind}', '${item.id}')">Set Active</button>`
+        }
+        <button class="btn danger btn-sm" onclick="deleteMedia('${kind}', '${item.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function activateMedia(kind, id) {
+  if (!confirm('Set this file as active for all players?')) return;
+  try {
+    const r = await fetch(`/api/admin/media/${kind}/${id}/activate`, { method: 'POST', headers: authHeader });
+    if (!r.ok) throw new Error('Failed');
+    refreshLibraries();
+  } catch (e) {
+    alert('Network error.');
+  }
+}
+
+async function deleteMedia(kind, id) {
+  if (!confirm('Permanently delete this file? This cannot be undone.')) return;
+  try {
+    const r = await fetch(`/api/admin/media/${kind}/${id}`, { method: 'DELETE', headers: authHeader });
+    if (!r.ok) throw new Error('Failed');
+    refreshLibraries();
+  } catch (e) {
+    alert('Network error.');
+  }
 }
 
 function guessAudioType(name) {
@@ -284,42 +333,7 @@ async function uploadSound(kind) {
     alert('Network error while uploading.');
   }
   btn.disabled = false; btn.textContent = 'Upload';
-  refreshSounds();
-}
-
-async function removeSound(kind) {
-  if (!confirm('Remove this sound?')) return;
-  try {
-    const r = await fetch('/api/admin/audio/' + kind, { method: 'DELETE', headers: { 'x-admin-password': encodeURIComponent(password) } });
-    let j = {};
-    try { j = await r.json(); } catch (e) {}
-    if (!r.ok) alert(j.error || ('Remove failed (' + r.status + ')'));
-  } catch (e) {
-    alert('Network error.');
-  }
-  refreshSounds();
-}
-
-refreshSounds();
-
-async function refreshPlane() {
-  try {
-    const r = await fetch('/api/plane/info');
-    const j = await r.json();
-    const box = document.getElementById('planePreview');
-    const st = document.getElementById('plane_status');
-    box.innerHTML = '';
-    if (j && j.url) {
-      const img = document.createElement('img');
-      img.src = j.url;
-      img.alt = 'Current plane';
-      box.appendChild(img);
-      st.textContent = 'Current file: ' + (j.name || 'uploaded image');
-    } else {
-      box.textContent = 'No plane uploaded';
-      st.textContent = 'None uploaded — the arrowhead is used.';
-    }
-  } catch (e) {}
+  refreshLibraries();
 }
 
 function guessImageType(name) {
@@ -350,23 +364,10 @@ async function uploadPlane() {
     alert('Network error while uploading.');
   }
   btn.disabled = false; btn.textContent = 'Upload';
-  refreshPlane();
+  refreshLibraries();
 }
 
-async function removePlane() {
-  if (!confirm('Remove the plane image? Players will see the arrowhead again.')) return;
-  try {
-    const r = await fetch('/api/admin/plane', { method: 'DELETE', headers: { 'x-admin-password': encodeURIComponent(password) } });
-    let j = {};
-    try { j = await r.json(); } catch (e) {}
-    if (!r.ok) alert(j.error || ('Remove failed (' + r.status + ')'));
-  } catch (e) {
-    alert('Network error.');
-  }
-  refreshPlane();
-}
-
-refreshPlane();
+refreshLibraries();
 
 function fmtTime(ts) {
   if (!ts) return '—';
@@ -378,7 +379,7 @@ async function refreshPlayers() {
     const r = await fetch('/api/admin/players', { headers: authHeader });
     const j = await r.json();
     if (!r.ok) return;
-        document.getElementById('playersList').innerHTML = j.players.map(p => `
+    document.getElementById('playersList').innerHTML = j.players.map(p => `
       <tr><td>${p.phone}</td><td>${Number(p.total).toLocaleString()} KES</td><td>${p.count}</td><td>${fmtTime(p.last)}</td><td style="color:var(--green); font-weight:800;">${Number(p.balance).toLocaleString()} KES</td></tr>
     `).join('') || '<tr><td colspan="5" style="color:#666">No players yet.</td></tr>';
   } catch (e) {}

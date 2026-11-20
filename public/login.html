@@ -21,6 +21,7 @@ input:focus { border-color: var(--red); }
 .btn { width: 100%; border: none; border-radius: 10px; padding: 15px; font-size: 14px; font-weight: 800; cursor: pointer; text-transform: uppercase; transition: all .2s; }
 .btn.red { background: linear-gradient(135deg, #ff3344, #cc1122); color: white; }
 .btn:hover { transform: translateY(-2px); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
 .error { color: var(--red); font-size: 13px; text-align: center; margin-top: 10px; display: none; }
 </style>
 </head>
@@ -88,40 +89,45 @@ async function handleSubmit() {
   if (password.length < 4) return showErr('Password must be at least 4 characters');
   if (currentMode === 'register' && firstName.length < 2) return showErr('Enter your first name');
 
-  let users = JSON.parse(localStorage.getItem('wh_users') || '{}');
+  // Disable button to prevent double-clicks
+  const btn = document.getElementById('submitBtn');
+  btn.textContent = 'Processing...';
+  btn.disabled = true;
+  document.getElementById('err').style.display = 'none';
 
-  if (currentMode === 'register') {
-    if (users[phone]) return showErr('Phone number already registered');
-    users[phone] = { password, firstName, lastName };
-    localStorage.setItem('wh_users', JSON.stringify(users));
-    await login(phone, firstName);
-  } else {
-    const rec = users[phone];
-    const storedPass = (typeof rec === 'string') ? rec : (rec && rec.password);
-    const storedFirst = (typeof rec === 'object' && rec) ? (rec.firstName || '') : '';
-    if (!storedPass || storedPass !== password) return showErr('Invalid phone or password');
-    await login(phone, storedFirst);
-  }
-}
-
-async function login(phone, firstName) {
   try {
-    // SECURE: Request a cryptographically secure session token from the server
-    const res = await fetch('/api/auth/session', {
+    // Talk to the SERVER, not local storage, enabling cross-device login
+    const endpoint = currentMode === 'register' ? '/api/auth/register' : '/api/auth/session';
+    const payload = currentMode === 'register' 
+      ? { phone, password, firstName, lastName }
+      : { phone, password };
+
+    const res = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ phone, password: document.getElementById('password').value })
+      body: JSON.stringify(payload)
     });
-    const data = await res.json();
-    if (!res.ok) return showErr(data.error || 'Login failed');
     
+    const data = await res.json();
+    if (!res.ok) {
+      if (currentMode === 'login' && data.error && data.error.includes('Invalid')) {
+         return showErr('Invalid phone or password. Need an account? Switch to Register.');
+      }
+      return showErr(data.error || 'Failed');
+    }
+    
+    // Save the server-issued token locally for auto-reconnection
     localStorage.setItem('sessionToken', data.token);
     localStorage.setItem('playerPhone', phone);
     localStorage.setItem('playerId', data.playerId);
-    if (firstName) localStorage.setItem('playerFirstName', firstName);
+    if (data.firstName) localStorage.setItem('playerFirstName', data.firstName);
+    
     window.location.href = '/index.html';
   } catch (e) {
-    showErr('Network error');
+    showErr('Network error. Check your connection.');
+  } finally {
+    btn.textContent = currentMode === 'login' ? 'Login & Play' : 'Create Account & Play';
+    btn.disabled = false;
   }
 }
 </script>

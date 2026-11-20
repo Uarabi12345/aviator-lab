@@ -10,19 +10,38 @@ const AUDIO_EXT = { 'audio/mpeg': '.mp3', 'audio/mp3': '.mp3', 'audio/wav': '.wa
 const IMAGE_EXT = { 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif', 'image/jpeg': '.jpg' };
 
 const META_FILE = join(UPLOAD_DIR, 'meta.json');
-let meta = { music: null, crash: null, plane: null };
-try { if (existsSync(META_FILE)) meta = { ...meta, ...JSON.parse(readFileSync(META_FILE, 'utf8')) }; } catch {}
+
+// NEW: Array-based library structure with migration support for old single-file format
+let meta = { music: [], crash: [], plane: [] };
+try { 
+  if (existsSync(META_FILE)) {
+    const oldMeta = JSON.parse(readFileSync(META_FILE, 'utf8'));
+    
+    // Migrate old format if it exists
+    if (oldMeta.music && typeof oldMeta.music === 'object' && !Array.isArray(oldMeta.music)) {
+      meta.music = [{ ...oldMeta.music, id: 'music_' + Date.now(), isActive: true }];
+    } else if (Array.isArray(oldMeta.music)) { meta.music = oldMeta.music; }
+    
+    if (oldMeta.crash && typeof oldMeta.crash === 'object' && !Array.isArray(oldMeta.crash)) {
+      meta.crash = [{ ...oldMeta.crash, id: 'crash_' + Date.now(), isActive: true }];
+    } else if (Array.isArray(oldMeta.crash)) { meta.crash = oldMeta.crash; }
+    
+    if (oldMeta.plane && typeof oldMeta.plane === 'object' && !Array.isArray(oldMeta.plane)) {
+      meta.plane = [{ ...oldMeta.plane, id: 'plane_' + Date.now(), isActive: true }];
+    } else if (Array.isArray(oldMeta.plane)) { meta.plane = oldMeta.plane; }
+  }
+} catch {}
 
 function saveMeta() {
   try { writeFileSync(META_FILE, JSON.stringify(meta)); } catch (e) { console.error('meta save failed', e.message); }
 }
 
-function removeOld(kind) {
-  const cur = meta[kind];
-  if (cur && cur.file) {
-    const p = join(UPLOAD_DIR, cur.file);
-    try { if (existsSync(p)) unlinkSync(p); } catch {}
-  }
+function getActive(kind) {
+  return meta[kind].find(item => item.isActive) || null;
+}
+
+function deactivateCurrent(kind) {
+  meta[kind].forEach(item => { item.isActive = false; });
 }
 
 function readBody(req, maxBytes) {
@@ -39,28 +58,105 @@ function readBody(req, maxBytes) {
   });
 }
 
-// ADDED: current state for fresh WebSocket connections
 export function getUploadInfo() {
+  const activeMusic = getActive('music');
+  const activeCrash = getActive('crash');
+  const activePlane = getActive('plane');
   return {
     audio: {
-      music: meta.music ? { url: `/uploads/${meta.music.file}`, name: meta.music.name } : null,
-      crash: meta.crash ? { url: `/uploads/${meta.crash.file}`, name: meta.crash.name } : null,
+      music: activeMusic ? { url: `/uploads/${activeMusic.file}`, name: activeMusic.name } : null,
+      crash: activeCrash ? { url: `/uploads/${activeCrash.file}`, name: activeCrash.name } : null,
     },
-    plane: meta.plane ? { url: `/uploads/${meta.plane.file}`, name: meta.plane.name } : null,
+    plane: activePlane ? { url: `/uploads/${activePlane.file}`, name: activePlane.name } : null,
   };
 }
 
 export function registerUploads(app, wss, isAdmin, broadcast) {
   app.get('/api/audio/info', (req, res) => {
+    const activeMusic = getActive('music');
+    const activeCrash = getActive('crash');
     res.json({
-      music: meta.music ? { url: `/uploads/${meta.music.file}`, name: meta.music.name } : null,
-      crash: meta.crash ? { url: `/uploads/${meta.crash.file}`, name: meta.crash.name } : null,
+      music: activeMusic ? { url: `/uploads/${activeMusic.file}`, name: activeMusic.name } : null,
+      crash: activeCrash ? { url: `/uploads/${activeCrash.file}`, name: activeCrash.name } : null,
     });
   });
 
   app.get('/api/plane/info', (req, res) => {
-    res.json(meta.plane ? { url: `/uploads/${meta.plane.file}`, name: meta.plane.name } : null);
+    const activePlane = getActive('plane');
+    res.json(activePlane ? { url: `/uploads/${activePlane.file}`, name: activePlane.name } : null);
   });
+
+  // --- NEW: Media Library Endpoints ---
+
+  // Get library for a specific kind
+  app.get('/api/admin/media/:kind', (req, res) => {
+    const password = decodeURIComponent(String(req.headers['x-admin-password'] || ''));
+    if (!isAdmin(password)) return res.status(401).json({ error: 'unauthorized' });
+    const kind = req.params.kind;
+    if (!['music', 'crash', 'plane'].includes(kind)) return res.status(400).json({ error: 'bad kind' });
+    res.json({ items: meta[kind] });
+  });
+
+  // Set a specific file as active
+  app.post('/api/admin/media/:kind/:id/activate', (req, res) => {
+    const password = decodeURIComponent(String(req.headers['x-admin-password'] || ''));
+    if (!isAdmin(password)) return res.status(401).json({ error: 'unauthorized' });
+    const kind = req.params.kind;
+    const id = req.params.id;
+    if (!['music', 'crash', 'plane'].includes(kind)) return res.status(400).json({ error: 'bad kind' });
+    
+    const item = meta[kind].find(i => i.id === id);
+    if (!item) return res.status(404).json({ error: 'not found' });
+
+    deactivateCurrent(kind);
+    item.isActive = true;
+    saveMeta();
+
+    if (kind === 'plane') {
+      broadcast({ type: 'planeInfo', data: { url: `/uploads/${item.file}`, name: item.name } });
+    } else {
+      broadcast({ type: 'audioInfo', data: {
+        music: getActive('music') ? { url: `/uploads/${getActive('music').file}`, name: getActive('music').name } : null,
+        crash: getActive('crash') ? { url: `/uploads/${getActive('crash').file}`, name: getActive('crash').name } : null,
+      }});
+    }
+    res.json({ ok: true });
+  });
+
+  // Permanently delete a file
+  app.delete('/api/admin/media/:kind/:id', (req, res) => {
+    const password = decodeURIComponent(String(req.headers['x-admin-password'] || ''));
+    if (!isAdmin(password)) return res.status(401).json({ error: 'unauthorized' });
+    const kind = req.params.kind;
+    const id = req.params.id;
+    if (!['music', 'crash', 'plane'].includes(kind)) return res.status(400).json({ error: 'bad kind' });
+    
+    const idx = meta[kind].findIndex(i => i.id === id);
+    if (idx === -1) return res.status(404).json({ error: 'not found' });
+
+    const item = meta[kind][idx];
+    const wasActive = item.isActive;
+    
+    const p = join(UPLOAD_DIR, item.file);
+    try { if (existsSync(p)) unlinkSync(p); } catch {}
+
+    meta[kind].splice(idx, 1);
+    saveMeta();
+
+    if (wasActive) {
+      if (kind === 'plane') {
+        broadcast({ type: 'planeInfo', data: null });
+      } else {
+        broadcast({ type: 'audioInfo', data: {
+          music: getActive('music') ? { url: `/uploads/${getActive('music').file}`, name: getActive('music').name } : null,
+          crash: getActive('crash') ? { url: `/uploads/${getActive('crash').file}`, name: getActive('crash').name } : null,
+        }});
+      }
+    }
+    res.json({ ok: true });
+  });
+
+  // --- Upload Handlers ---
 
   async function handleAudioUpload(req, res, kind) {
     const password = decodeURIComponent(String(req.headers['x-admin-password'] || ''));
@@ -72,36 +168,26 @@ export function registerUploads(app, wss, isAdmin, broadcast) {
     try { buf = await readBody(req, 15 * 1024 * 1024); }
     catch (e) { return res.status(413).json({ error: 'File too large (max 15 MB)' }); }
     if (!buf.length) return res.status(400).json({ error: 'Empty file' });
+    
     const rawName = decodeURIComponent(String(req.headers['x-file-name'] || 'audio' + ext));
-    const file = `${kind}_${Date.now()}${ext}`;
-    removeOld(kind);
+    const id = `${kind}_${Date.now()}`;
+    const file = `${id}${ext}`;
+    
+    deactivateCurrent(kind); // Don't delete, just deactivate
     writeFileSync(join(UPLOAD_DIR, file), buf);
-    meta[kind] = { file, name: rawName, uploadedAt: Date.now() };
+    
+    meta[kind].push({ id, file, name: rawName, uploadedAt: Date.now(), isActive: true });
     saveMeta();
+    
     broadcast({ type: 'audioInfo', data: {
-      music: meta.music ? { url: `/uploads/${meta.music.file}`, name: meta.music.name } : null,
-      crash: meta.crash ? { url: `/uploads/${meta.crash.file}`, name: meta.crash.name } : null,
+      music: getActive('music') ? { url: `/uploads/${getActive('music').file}`, name: getActive('music').name } : null,
+      crash: getActive('crash') ? { url: `/uploads/${getActive('crash').file}`, name: getActive('crash').name } : null,
     }});
     res.json({ ok: true, name: rawName });
   }
 
   app.post('/api/admin/audio/music', (req, res) => handleAudioUpload(req, res, 'music'));
   app.post('/api/admin/audio/crash', (req, res) => handleAudioUpload(req, res, 'crash'));
-
-  app.delete('/api/admin/audio/:kind', (req, res) => {
-    const password = decodeURIComponent(String(req.headers['x-admin-password'] || ''));
-    if (!isAdmin(password)) return res.status(401).json({ error: 'unauthorized' });
-    const kind = req.params.kind;
-    if (!['music', 'crash'].includes(kind)) return res.status(400).json({ error: 'bad kind' });
-    removeOld(kind);
-    meta[kind] = null;
-    saveMeta();
-    broadcast({ type: 'audioInfo', data: {
-      music: meta.music ? { url: `/uploads/${meta.music.file}`, name: meta.music.name } : null,
-      crash: meta.crash ? { url: `/uploads/${meta.crash.file}`, name: meta.crash.name } : null,
-    }});
-    res.json({ ok: true });
-  });
 
   app.post('/api/admin/plane', async (req, res) => {
     const password = decodeURIComponent(String(req.headers['x-admin-password'] || ''));
@@ -113,23 +199,18 @@ export function registerUploads(app, wss, isAdmin, broadcast) {
     try { buf = await readBody(req, 2 * 1024 * 1024); }
     catch (e) { return res.status(413).json({ error: 'Image too large (max 2 MB)' }); }
     if (!buf.length) return res.status(400).json({ error: 'Empty file' });
+    
     const rawName = decodeURIComponent(String(req.headers['x-file-name'] || 'plane' + ext));
-    const file = `plane_${Date.now()}${ext}`;
-    removeOld('plane');
+    const id = `plane_${Date.now()}`;
+    const file = `${id}${ext}`;
+    
+    deactivateCurrent('plane'); // Don't delete, just deactivate
     writeFileSync(join(UPLOAD_DIR, file), buf);
-    meta.plane = { file, name: rawName, uploadedAt: Date.now() };
+    
+    meta.plane.push({ id, file, name: rawName, uploadedAt: Date.now(), isActive: true });
     saveMeta();
-    broadcast({ type: 'planeInfo', data: { url: `/uploads/${meta.plane.file}`, name: meta.plane.name } });
+    
+    broadcast({ type: 'planeInfo', data: { url: `/uploads/${meta.plane.find(i => i.isActive).file}`, name: rawName } });
     res.json({ ok: true, name: rawName });
-  });
-
-  app.delete('/api/admin/plane', (req, res) => {
-    const password = decodeURIComponent(String(req.headers['x-admin-password'] || ''));
-    if (!isAdmin(password)) return res.status(401).json({ error: 'unauthorized' });
-    removeOld('plane');
-    meta.plane = null;
-    saveMeta();
-    broadcast({ type: 'planeInfo', data: null });
-    res.json({ ok: true });
   });
 }

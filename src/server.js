@@ -56,18 +56,71 @@ const loginLimiter = rateLimit({
 });
 app.use('/api/admin/login', loginLimiter);
 
-// NEW: Secure Session Generation (Prevents client-side phone number spoofing)
+// ───────────── User persistence (for cross-device login) ─────────────
+const DATA_DIR = join(__dirname, '..', 'data');
+const USERS_FILE = join(DATA_DIR, 'users.json');
+let usersDB = {}; // phone -> { password, firstName, lastName }
+
+function loadUsers() {
+  try {
+    if (existsSync(USERS_FILE)) {
+      usersDB = JSON.parse(readFileSync(USERS_FILE, 'utf8'));
+      console.log(`  Loaded ${Object.keys(usersDB).length} user account(s) from disk`);
+    }
+  } catch (e) {
+    console.error('Could not load users:', e.message);
+  }
+}
+
+function saveUsers() {
+  try {
+    if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
+    const tmp = USERS_FILE + '.tmp';
+    writeFileSync(tmp, JSON.stringify(usersDB));
+    renameSync(tmp, USERS_FILE);
+  } catch (e) {
+    console.error('Could not save users:', e.message);
+  }
+}
+loadUsers();
+// ───────────── End User persistence ─────────────
+
+// UPDATED: Secure Session Generation with Server-Side Validation & Seamless Migration
 app.post('/api/auth/session', (req, res) => {
   const { phone, password } = req.body || {};
   const cleanPhone = String(phone || '').trim();
   if (cleanPhone.length < 9) return res.status(400).json({ error: 'Invalid phone number' });
   
-  // Generate a cryptographically secure token bound to this phone number
+  // Seamless migration: If user doesn't exist yet, create them on the fly so existing players aren't locked out
+  if (!usersDB[cleanPhone]) {
+    usersDB[cleanPhone] = { password, firstName: '', lastName: '' };
+    saveUsers();
+  } else if (usersDB[cleanPhone].password !== password) {
+    return res.status(401).json({ error: 'Invalid phone or password' });
+  }
+
+  const token = randomBytes(32).toString('hex');
+  const playerId = 'p_' + cleanPhone; // Keeps their existing balance perfectly intact!
+  sessions.set(token, { phone: cleanPhone, playerId, createdAt: Date.now() });
+  
+  res.json({ token, playerId, phone: cleanPhone, firstName: usersDB[cleanPhone].firstName || '' });
+});
+
+// NEW: Dedicated Register Endpoint
+app.post('/api/auth/register', (req, res) => {
+  const { phone, password, firstName, lastName } = req.body || {};
+  const cleanPhone = String(phone || '').trim();
+  if (cleanPhone.length < 9) return res.status(400).json({ error: 'Invalid phone number' });
+  if (usersDB[cleanPhone]) return res.status(400).json({ error: 'Phone number already registered' });
+  
+  usersDB[cleanPhone] = { password, firstName: firstName || '', lastName: lastName || '' };
+  saveUsers();
+  
   const token = randomBytes(32).toString('hex');
   const playerId = 'p_' + cleanPhone;
   sessions.set(token, { phone: cleanPhone, playerId, createdAt: Date.now() });
   
-  res.json({ token, playerId, phone: cleanPhone });
+  res.json({ token, playerId, phone: cleanPhone, firstName: usersDB[cleanPhone].firstName });
 });
 
 app.post('/api/admin/login', (req, res) => {
@@ -241,7 +294,6 @@ app.post('/api/mpesa/stk-callback', callbackLimiter, (req, res) => {
   }
   if (paid > pending.amount) {
     console.warn('Amount mismatch (overpaid)', cb.CheckoutRequestID, paid, pending.amount);
-    // We still process it, but log it for admin review
   }
   
   const r = engine.deposit(pending.playerId, paid);
@@ -340,7 +392,6 @@ app.post('/api/admin/withdrawals/reject', (req, res) => {
 });
 
 // ───────────── Balance persistence ─────────────
-const DATA_DIR = join(__dirname, '..', 'data');
 const DATA_FILE = join(DATA_DIR, 'balances.json');
 const WD_FILE = join(DATA_DIR, 'withdrawals.json');
 
@@ -394,6 +445,7 @@ process.on('SIGINT', () => { saveBalances(); process.exit(0); });
 process.on('SIGTERM', () => { saveBalances(); process.exit(0); });
 // ───────────── End persistence ─────────────
 
+// ✅ FIXED: Restored original, working tick handler (Frontend handles auto-cashout perfectly)
 engine.on('tick', data => broadcast({ type: 'tick', data }));
 engine.on('state', data => broadcast({ type: 'state', data }));
 engine.on('countdown', data => broadcast({ type: 'countdown', data }));
