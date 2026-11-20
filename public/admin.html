@@ -19,16 +19,13 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; b
 
 .container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
 
-/* ZONE HEADERS */
 .zone-header { font-size: 15px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 10px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
 .zone-header span { font-size: 18px; }
 .zone-header.danger { color: var(--red); border-color: var(--red); }
 
-/* DASHBOARD GRID */
 .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 @media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
 
-/* CARDS */
 .card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; }
 .card:hover { box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
 .card.danger-zone { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.03); }
@@ -37,7 +34,6 @@ h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: var
 .note { font-size: 12px; color: var(--green); margin-bottom: 16px; line-height: 1.5; }
 .warn { font-size: 12px; color: #fbbf24; margin-bottom: 16px; line-height: 1.5; }
 
-/* STATS */
 .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .stat-box { background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
 .stat-box .label { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
@@ -45,13 +41,11 @@ h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: var
 .stat-box .value.blue { color: #60a5fa; }
 .stat-box .value.white { color: white; }
 
-/* PREVIEW */
 .preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
 .preview-box { background: rgba(34,221,119,.1); border: 1px solid rgba(34,221,119,.3); border-radius: 12px; padding: 16px; text-align: center; }
 .preview-box .pos { font-size: 10px; color: var(--muted); font-weight: 700; letter-spacing: 1px; }
 .preview-box .val { font-size: 24px; font-weight: 900; color: var(--green); font-variant-numeric: tabular-nums; margin-top: 4px; }
 
-/* FORMS & TABLES */
 input { background: rgba(0,0,0,.3); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 8px; outline: none; width: 100%; margin-bottom: 10px; font-size: 14px; transition: border-color 0.2s; }
 input:focus { border-color: var(--red); }
 .btn { border: none; border-radius: 8px; padding: 12px 20px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 12px; transition: all 0.2s; }
@@ -71,7 +65,6 @@ code { background: rgba(255,255,255,.1); padding: 3px 8px; border-radius: 4px; f
 .bal-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
 .bal-row input { margin-bottom: 0; }
 
-/* MEDIA LIBRARY */
 .snd-row { padding: 16px 0; border-top: 1px solid var(--border); }
 .snd-row:first-child { border-top: none; padding-top: 0; }
 .snd-title { font-weight: 800; margin-bottom: 10px; font-size: 13px; }
@@ -99,7 +92,6 @@ code { background: rgba(255,255,255,.1); padding: 3px 8px; border-radius: 4px; f
 
 <div class="container">
 
-  <!-- ZONE 1: DASHBOARD OVERVIEW -->
   <div class="zone-header"><span>📊</span> Dashboard Overview</div>
   <div class="dashboard-grid">
     <div class="card">
@@ -123,12 +115,11 @@ code { background: rgba(255,255,255,.1); padding: 3px 8px; border-radius: 4px; f
     </div>
   </div>
 
-  <!-- ZONE 2: FINANCIAL MANAGEMENT -->
   <div class="zone-header"><span>💰</span> Financial Management</div>
   
   <div class="card" id="withdrawalsCard">
     <h2>Withdrawal Requests</h2>
-    <p class="warn">⚠️ Manual payouts. When a player requests a withdrawal, they pay 300 KES and the amount is deducted. Send them the full amount on your phone, then click <b>Mark Paid</b>. Use <b>Reject</b> only if you are NOT sending the money (it refunds the balance).</p>
+    <p class="warn">⚠️ Manual payouts. When a player requests a withdrawal, they pay 300 KES and the amount is deducted. Send them the full amount on your phone, then click <b>Mark Paid</b>. Use <b>Reject</b> only if you are NOT sending the money (it refunds the balance). Use <b>Delete</b> to remove the request entirely.</p>
     <div class="table-scroll">
       <table>
         <thead><tr><th>Player</th><th>Phone</th><th>Amount</th><th>Status</th><th>Requested</th><th>Actions</th></tr></thead>
@@ -139,16 +130,15 @@ code { background: rgba(255,255,255,.1); padding: 3px 8px; border-radius: 4px; f
 
   <div class="card">
     <h2>Players & Deposits</h2>
-    <p class="note">💰 Who has deposited and each player's current balance.</p>
+    <p class="note">💰 Who has deposited and each player's current balance. Use <b>Delete</b> to remove a player's deposit history (does NOT affect their balance).</p>
     <div class="table-scroll">
       <table>
-        <thead><tr><th>Phone</th><th>Total Deposited</th><th>Deposits</th><th>Last Deposit</th><th>Balance</th></tr></thead>
+        <thead><tr><th>Phone</th><th>Total Deposited</th><th>Deposits</th><th>Last Deposit</th><th>Balance</th><th>Action</th></tr></thead>
         <tbody id="playersList"></tbody>
       </table>
     </div>
   </div>
 
-  <!-- ZONE 3: MEDIA & ASSETS -->
   <div class="zone-header"><span>🎨</span> Media & Assets</div>
   <div class="dashboard-grid">
     <div class="card">
@@ -172,7 +162,7 @@ code { background: rgba(255,255,255,.1); padding: 3px 8px; border-radius: 4px; f
 
     <div class="card">
       <h2>Plane Image (with Cropper)</h2>
-      <p class="note">✈️ Upload a plane picture. Use the cropper to select the exact size and area.</p>
+      <p class="note">✈️ Upload a plane picture. Transparent PNGs are preserved. Use the cropper to select the exact size and area.</p>
       <input type="file" id="plane_file" accept="image/png,image/webp,image/jpeg" onchange="openCropper(this)">
       
       <div id="cropperModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; align-items:center; justify-content:center; flex-direction:column; padding: 20px;">
@@ -190,7 +180,6 @@ code { background: rgba(255,255,255,.1); padding: 3px 8px; border-radius: 4px; f
     </div>
   </div>
 
-  <!-- ZONE 4 & 5: SUPER ADMIN ONLY -->
   <div id="superAdminZones">
     <div class="zone-header"><span>👥</span> Access & Security</div>
     <div class="dashboard-grid">
@@ -248,7 +237,6 @@ const role = localStorage.getItem('adminRole');
 
 if (!password) window.location.href = '/admin-login.html';
 
-// Hide Super Admin zones if not super
 if (role !== 'super') {
   const superZones = document.getElementById('superAdminZones');
   if (superZones) superZones.style.display = 'none';
@@ -314,7 +302,7 @@ async function removeAdmin(token) {
   refreshAdmins();
 }
 
-// ───────────── Image Cropper Logic ─────────────
+// ───────────── Image Cropper Logic (FIXED: transparent background) ─────────────
 let cropper = null;
 function openCropper(input) {
   const file = input.files[0];
@@ -339,7 +327,8 @@ async function cropAndUpload() {
   if (!cropper) return;
   const btn = event.target;
   btn.textContent = 'Processing...'; btn.disabled = true;
-  const canvas = cropper.getCroppedCanvas({ maxWidth: 4096, maxHeight: 4096, fillColor: '#fff', imageSmoothingEnabled: true, imageSmoothingQuality: 'high' });
+  // FIX: Changed fillColor from '#fff' to 'transparent' to preserve PNG transparency
+  const canvas = cropper.getCroppedCanvas({ maxWidth: 4096, maxHeight: 4096, fillColor: 'transparent', imageSmoothingEnabled: true, imageSmoothingQuality: 'high' });
   canvas.toBlob(async (blob) => {
     const file = new File([blob], "cropped-plane.png", { type: "image/png" });
     try {
@@ -465,32 +454,6 @@ async function deleteMedia(kind, id) {
   try { await fetch(`/api/admin/media/${kind}/${id}`, { method: 'DELETE', headers: authHeader }); refreshLibraries(); } catch (e) { alert('Network error.'); }
 }
 
-function guessImageType(name) {
-  const ext = String(name || '').split('.').pop().toLowerCase();
-  return ({ png: 'image/png', webp: 'image/webp', gif: 'image/gif', jpg: 'image/jpeg', jpeg: 'image/jpeg' })[ext] || '';
-}
-
-async function uploadPlane() {
-  const input = document.getElementById('plane_file');
-  const f = input.files[0];
-  if (!f) return alert('Choose an image first.');
-  if (f.size > 2 * 1024 * 1024) return alert('Image is too large (max 2 MB).');
-  const type = f.type || guessImageType(f.name);
-  if (!['image/png', 'image/webp', 'image/gif', 'image/jpeg'].includes(type)) return alert('Unsupported file. Use PNG, WebP, GIF or JPG.');
-  const btn = document.getElementById('plane_up');
-  btn.disabled = true; btn.textContent = 'Uploading…';
-  try {
-    const r = await fetch('/api/admin/plane', {
-      method: 'POST', headers: { 'content-type': type, 'x-admin-password': encodeURIComponent(password), 'x-file-name': encodeURIComponent(f.name) }, body: f
-    });
-    let j = {}; try { j = await r.json(); } catch (e) {}
-    if (!r.ok) alert(j.error || ('Upload failed (' + r.status + ')'));
-    else { input.value = ''; alert('Uploaded. Players will see the new plane right away.'); }
-  } catch (e) { alert('Network error while uploading.'); }
-  btn.disabled = false; btn.textContent = 'Upload';
-  refreshPlane();
-}
-
 async function refreshPlane() {
   try {
     const r = await fetch('/api/plane/info');
@@ -511,14 +474,22 @@ refreshPlane();
 
 function fmtTime(ts) { if (!ts) return '—'; try { return new Date(ts).toLocaleString(); } catch (e) { return '—'; } }
 
+// NEW: refreshPlayers with delete button
 async function refreshPlayers() {
   try {
     const r = await fetch('/api/admin/players', { headers: authHeader });
     const j = await r.json();
     if (!r.ok) return;
     document.getElementById('playersList').innerHTML = j.players.map(p => `
-      <tr><td>${p.phone}</td><td>${Number(p.total).toLocaleString()} KES</td><td>${p.count}</td><td>${fmtTime(p.last)}</td><td style="color:var(--green); font-weight:800;">${Number(p.balance).toLocaleString()} KES</td></tr>
-    `).join('') || '<tr><td colspan="5" style="color:#666; text-align:center;">No players yet.</td></tr>';
+      <tr>
+        <td>${p.phone}</td>
+        <td>${Number(p.total).toLocaleString()} KES</td>
+        <td>${p.count}</td>
+        <td>${fmtTime(p.last)}</td>
+        <td style="color:var(--green); font-weight:800;">${Number(p.balance).toLocaleString()} KES</td>
+        <td><button class="btn danger" style="padding:4px 10px; font-size:10px;" onclick="deletePlayer('${p.phone}')">Delete</button></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" style="color:#666; text-align:center;">No players yet.</td></tr>';
   } catch (e) {}
 }
 setInterval(refreshPlayers, 5000); refreshPlayers();
@@ -546,6 +517,7 @@ async function resetAll() {
   } catch (e) { alert('Network error.'); }
 }
 
+// NEW: refreshWithdrawals with delete button
 async function refreshWithdrawals() {
   try {
     const r = await fetch('/api/admin/withdrawals', { headers: authHeader });
@@ -558,7 +530,10 @@ async function refreshWithdrawals() {
         <td>${w.playerId}</td><td>${w.phone}</td><td>${w.amount} KES</td>
         <td><b style="color:${statusColor}">${w.status}</b>${w.paidManually ? ' <small style="color:#8b92a5">(manual)</small>' : ''}${w.feeRefunded ? ' <small style="color:#8b92a5">(fee refunded)</small>' : ''}</td>
         <td>${fmtTime(w.createdAt)}</td>
-        <td>${canAct ? `<button class="btn green" onclick="markPaidWd('${w.id}')">Mark Paid</button><button class="btn danger" onclick="rejectWd('${w.id}')">Reject</button>` : '—'}</td>
+        <td style="white-space:nowrap;">
+          ${canAct ? `<button class="btn green" style="padding:6px 10px; font-size:11px;" onclick="markPaidWd('${w.id}')">Mark Paid</button> <button class="btn danger" style="padding:6px 10px; font-size:11px;" onclick="rejectWd('${w.id}')">Reject</button>` : ''}
+          <button class="btn danger" style="padding:6px 10px; font-size:11px; background:#7f1d1d;" onclick="deleteWithdrawal('${w.id}')">Delete</button>
+        </td>
       </tr>`;
     }).join('') || '<tr><td colspan="6" style="color:#666; text-align:center;">No withdrawal requests.</td></tr>';
   } catch (e) {}
@@ -581,9 +556,34 @@ async function rejectWd(id) {
   if (!r.ok) alert(j.error || 'Reject failed');
   refreshWithdrawals();
 }
+
+// NEW: Delete a withdrawal request permanently
+async function deleteWithdrawal(id) {
+  if (!confirm('Delete this withdrawal request permanently? This cannot be undone.')) return;
+  try {
+    const r = await fetch(`/api/admin/withdrawals/${id}`, { method: 'DELETE', headers: authHeader });
+    const j = await r.json();
+    if (!r.ok) return alert(j.error || 'Delete failed');
+    alert('Withdrawal request deleted.');
+    refreshWithdrawals();
+  } catch (e) { alert('Network error.'); }
+}
+
+// NEW: Delete a player's deposit record
+async function deletePlayer(phone) {
+  if (!confirm(`Delete all deposit records for ${phone}?\n\nThis will NOT reset their balance. It only removes their deposit history from the admin panel.`)) return;
+  try {
+    const r = await fetch(`/api/admin/players/${encodeURIComponent(phone)}`, { method: 'DELETE', headers: authHeader });
+    const j = await r.json();
+    if (!r.ok) return alert(j.error || 'Delete failed');
+    alert('Player deposit records deleted.');
+    refreshPlayers();
+    refreshStats();
+  } catch (e) { alert('Network error.'); }
+}
+
 setInterval(refreshWithdrawals, 5000); refreshWithdrawals();
 
-// Call these on load
 refreshSubAdmins();
 </script>
 </body>

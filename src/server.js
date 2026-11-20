@@ -89,6 +89,7 @@ function saveSubAdmins() {
 loadSubAdmins();
 // ───────────── End Sub-Admin persistence ─────────────
 
+// ───────────── Auth Routes ─────────────
 app.post('/api/auth/session', (req, res) => {
   const { phone, password } = req.body || {};
   const cleanPhone = String(phone || '').trim();
@@ -118,6 +119,25 @@ app.post('/api/auth/register', (req, res) => {
   res.json({ token, playerId, phone: cleanPhone, firstName: usersDB[cleanPhone].firstName });
 });
 
+// NEW: Logout from ALL devices
+app.post('/api/auth/logout-all', (req, res) => {
+  const token = String(req.headers['authorization'] || '').replace('Bearer ', '');
+  const session = sessions.get(token);
+  if (!session || !session.phone) return res.status(401).json({ error: 'unauthorized' });
+  
+  const phone = session.phone;
+  let count = 0;
+  for (const [t, s] of sessions) {
+    if (s.phone === phone) {
+      sessions.delete(t);
+      count++;
+    }
+  }
+  res.json({ ok: true, count, message: `Logged out from ${count} device(s).` });
+});
+// ───────────── End Auth Routes ─────────────
+
+// ───────────── Admin Routes ─────────────
 app.post('/api/admin/login', (req, res) => {
   const { password } = req.body || {};
   if (!password) return res.status(400).json({ error: 'password required' });
@@ -203,6 +223,26 @@ app.delete('/api/admin/remove', (req, res) => {
   if (!isSuper(password)) return res.status(403).json({ error: 'super only' });
   if (!adminTokens.has(token)) return res.status(404).json({ error: 'not found' });
   adminTokens.delete(token);
+  res.json({ ok: true });
+});
+
+// NEW: Delete a withdrawal request permanently
+app.delete('/api/admin/withdrawals/:id', (req, res) => {
+  if (!isAdmin(getAdminPassword(req))) return res.status(401).json({ error: 'unauthorized' });
+  const id = req.params.id;
+  const idx = withdrawals.findIndex(w => w.id === id);
+  if (idx === -1) return res.status(404).json({ error: 'not found' });
+  withdrawals.splice(idx, 1);
+  saveBalances();
+  res.json({ ok: true });
+});
+
+// NEW: Delete a player's deposit record (super only)
+app.delete('/api/admin/players/:phone', (req, res) => {
+  if (!isSuper(getAdminPassword(req))) return res.status(403).json({ error: 'super only' });
+  const phone = req.params.phone;
+  engine.depositLog.delete(phone);
+  saveBalances();
   res.json({ ok: true });
 });
 
