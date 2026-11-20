@@ -3,99 +3,132 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Falcon Aviator — Admin</title>
+<title>Falcon Aviator — Super Admin</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
 <style>
-:root { --bg: #0b0f19; --panel: rgba(20, 25, 40, 0.85); --border: rgba(255, 255, 255, 0.08); --red: #ff3344; --green: #22dd77; --text: #ffffff; --muted: #8b92a5; }
+:root { --bg: #0b0f19; --panel: rgba(20, 25, 40, 0.9); --border: rgba(255, 255, 255, 0.08); --red: #ff3344; --green: #22dd77; --text: #ffffff; --muted: #8b92a5; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); padding: 20px; }
-.header { display: flex; justify-content: space-between; align-items: center; max-width: 900px; margin: 0 auto 20px; }
-.logo { font-size: 20px; font-weight: 900; color: var(--red); }
-.badge { background: var(--red); color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
-.logout-btn { background: rgba(255,255,255,.05); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; }
-.logout-btn:hover { background: var(--red); border-color: var(--red); }
-.container { max-width: 900px; margin: 0 auto; display: grid; gap: 20px; }
-.card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; }
-h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 16px; }
 
-.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.header { display: flex; justify-content: space-between; align-items: center; max-width: 1200px; margin: 0 auto 30px; padding: 0 10px; }
+.logo { font-size: 22px; font-weight: 900; color: var(--red); letter-spacing: -0.5px; }
+.badge { background: var(--red); color: white; padding: 4px 10px; border-radius: 4px; font-size: 11px; font-weight: 800; letter-spacing: 1px; }
+.logout-btn { background: rgba(255,255,255,.05); border: 1px solid var(--border); color: var(--text); padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 700; cursor: pointer; text-decoration: none; transition: all 0.2s; }
+.logout-btn:hover { background: var(--red); border-color: var(--red); }
+
+.container { max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 30px; }
+
+/* ZONE HEADERS */
+.zone-header { font-size: 15px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: 1.5px; margin-top: 10px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+.zone-header span { font-size: 18px; }
+.zone-header.danger { color: var(--red); border-color: var(--red); }
+
+/* DASHBOARD GRID */
+.dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+@media (max-width: 900px) { .dashboard-grid { grid-template-columns: 1fr; } }
+
+/* CARDS */
+.card { background: var(--panel); border: 1px solid var(--border); border-radius: 16px; padding: 24px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); transition: transform 0.2s, box-shadow 0.2s; }
+.card:hover { box-shadow: 0 8px 15px rgba(0,0,0,0.2); }
+.card.danger-zone { border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.03); }
+
+h2 { font-size: 14px; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 16px; }
+.note { font-size: 12px; color: var(--green); margin-bottom: 16px; line-height: 1.5; }
+.warn { font-size: 12px; color: #fbbf24; margin-bottom: 16px; line-height: 1.5; }
+
+/* STATS */
+.stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .stat-box { background: rgba(255,255,255,.03); border: 1px solid var(--border); border-radius: 12px; padding: 16px; text-align: center; }
-.stat-box .label { font-size: 11px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
-.stat-box .value { font-size: 24px; font-weight: 900; color: var(--green); margin-top: 4px; font-variant-numeric: tabular-nums; }
+.stat-box .label { font-size: 10px; color: var(--muted); text-transform: uppercase; font-weight: 700; }
+.stat-box .value { font-size: 22px; font-weight: 900; color: var(--green); margin-top: 4px; font-variant-numeric: tabular-nums; }
 .stat-box .value.blue { color: #60a5fa; }
 .stat-box .value.white { color: white; }
 
-.preview-grid { display: flex; gap: 12px; flex-wrap: wrap; }
-.preview-box { flex: 1; min-width: 120px; background: rgba(34,221,119,.1); border: 1px solid rgba(34,221,119,.3); border-radius: 12px; padding: 16px; text-align: center; }
+/* PREVIEW */
+.preview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 12px; }
+.preview-box { background: rgba(34,221,119,.1); border: 1px solid rgba(34,221,119,.3); border-radius: 12px; padding: 16px; text-align: center; }
 .preview-box .pos { font-size: 10px; color: var(--muted); font-weight: 700; letter-spacing: 1px; }
-.preview-box .val { font-size: 28px; font-weight: 900; color: var(--green); font-variant-numeric: tabular-nums; margin-top: 4px; }
-input, button { font-family: inherit; }
-input { background: rgba(0,0,0,.3); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 8px; outline: none; width: 100%; margin-bottom: 10px; }
-.btn { border: none; border-radius: 8px; padding: 12px 20px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 13px; }
+.preview-box .val { font-size: 24px; font-weight: 900; color: var(--green); font-variant-numeric: tabular-nums; margin-top: 4px; }
+
+/* FORMS & TABLES */
+input { background: rgba(0,0,0,.3); border: 1px solid var(--border); color: white; padding: 12px; border-radius: 8px; outline: none; width: 100%; margin-bottom: 10px; font-size: 14px; transition: border-color 0.2s; }
+input:focus { border-color: var(--red); }
+.btn { border: none; border-radius: 8px; padding: 12px 20px; font-weight: 800; cursor: pointer; text-transform: uppercase; font-size: 12px; transition: all 0.2s; }
 .btn.red { background: var(--red); color: white; }
+.btn.red:hover { background: #dc2626; }
 .btn.danger { background: #991b1b; color: white; }
+.btn.danger:hover { background: #7f1d1d; }
 .btn.green { background: #16a34a; color: white; }
+.btn.green:hover { background: #15803d; }
+
 table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-th, td { text-align: left; padding: 10px; border-bottom: 1px solid var(--border); font-size: 14px; }
-th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 1px; }
-code { background: rgba(255,255,255,.1); padding: 2px 6px; border-radius: 4px; font-family: monospace; }
-.note { font-size: 12px; color: var(--green); margin-bottom: 12px; }
+th, td { text-align: left; padding: 12px 10px; border-bottom: 1px solid var(--border); font-size: 13px; }
+th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+code { background: rgba(255,255,255,.1); padding: 3px 8px; border-radius: 4px; font-family: monospace; font-size: 12px; }
 
-.snd-row { padding: 14px 0; border-top: 1px solid var(--border); }
-.snd-row:first-child { border-top: none; padding-top: 0; }
-.snd-title { font-weight: 800; margin-bottom: 8px; }
-.snd-btns { display: flex; gap: 10px; margin-top: 8px; }
-.snd-btns .btn { flex: 1; }
-.btn:disabled { opacity: .5; cursor: not-allowed; }
-
-.plane-preview { display: flex; align-items: center; justify-content: center; height: 110px; margin-bottom: 12px; background: rgba(0,0,0,.3); border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); font-size: 12px; }
-.plane-preview img { max-height: 90px; max-width: 160px; object-fit: contain; }
-.stats-grid.second { margin-top: 12px; }
 .table-scroll { overflow-x: auto; }
 .bal-row { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 14px; }
 .bal-row input { margin-bottom: 0; }
-.bal-row .btn { white-space: nowrap; }
-.warn { font-size: 12px; color: #fbbf24; margin-bottom: 12px; }
-@media (max-width: 700px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+
+/* MEDIA LIBRARY */
+.snd-row { padding: 16px 0; border-top: 1px solid var(--border); }
+.snd-row:first-child { border-top: none; padding-top: 0; }
+.snd-title { font-weight: 800; margin-bottom: 10px; font-size: 13px; }
+.lib-item { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px; margin-bottom: 8px; border: 1px solid var(--border); transition: all 0.2s; }
+.lib-item.active { border-color: var(--green); background: rgba(34, 221, 119, 0.05); }
+.plane-preview { display: flex; align-items: center; justify-content: center; height: 120px; margin-top: 16px; background: rgba(0,0,0,.3); border: 1px dashed var(--border); border-radius: 12px; color: var(--muted); font-size: 12px; }
+.plane-preview img { max-height: 100px; max-width: 100%; object-fit: contain; }
+
+@media (max-width: 700px) {
+  .stats-grid { grid-template-columns: 1fr 1fr; }
+  .btn { width: 100%; margin-bottom: 8px; }
+  .bal-row { flex-direction: column; }
+}
 </style>
 </head>
 <body>
 
 <div class="header">
-  <div class="logo">FALCON AVIATOR — ADMIN</div>
+  <div class="logo">🦅 FALCON AVIATOR — SUPER ADMIN</div>
   <div style="display:flex; align-items:center; gap: 15px;">
-    <div class="badge">LIVE</div>
+    <div class="badge">LIVE DASHBOARD</div>
     <a href="/admin-login.html" onclick="localStorage.removeItem('adminPassword'); localStorage.removeItem('adminRole');" class="logout-btn">LOGOUT</a>
   </div>
 </div>
 
 <div class="container">
-  <div class="card">
-    <h2>Platform Stats</h2>
-    <div class="stats-grid">
-      <div class="stat-box"><div class="label">Total Deposits</div><div class="value" id="statDeposits">0</div></div>
-      <div class="stat-box"><div class="label">Total Withdrawals</div><div class="value blue" id="statWithdrawals">0</div></div>
-      <div class="stat-box"><div class="label">Total Wagered</div><div class="value white" id="statWagered">0</div></div>
-      <div class="stat-box"><div class="label">Active Players</div><div class="value" id="statPlayers">0</div></div>
+
+  <!-- ZONE 1: DASHBOARD OVERVIEW -->
+  <div class="zone-header"><span>📊</span> Dashboard Overview</div>
+  <div class="dashboard-grid">
+    <div class="card">
+      <h2>Platform Stats</h2>
+      <div class="stats-grid">
+        <div class="stat-box"><div class="label">Total Deposits</div><div class="value" id="statDeposits">0</div></div>
+        <div class="stat-box"><div class="label">Total Withdrawals</div><div class="value blue" id="statWithdrawals">0</div></div>
+        <div class="stat-box"><div class="label">Total Wagered</div><div class="value white" id="statWagered">0</div></div>
+        <div class="stat-box"><div class="label">Active Players</div><div class="value" id="statPlayers">0</div></div>
+        <div class="stat-box"><div class="label">Depositors</div><div class="value white" id="statDepositors">0</div></div>
+        <div class="stat-box"><div class="label">Deposits Made</div><div class="value white" id="statDepositCount">0</div></div>
+        <div class="stat-box"><div class="label">Fees Collected</div><div class="value blue" id="statFees">0</div></div>
+        <div class="stat-box"><div class="label">Fees Count</div><div class="value blue" id="statFeeCount">0</div></div>
+      </div>
     </div>
-    <div class="stats-grid second">
-      <div class="stat-box"><div class="label">Depositors</div><div class="value white" id="statDepositors">0</div></div>
-      <div class="stat-box"><div class="label">Deposits Made</div><div class="value white" id="statDepositCount">0</div></div>
-      <div class="stat-box"><div class="label">Fees Collected</div><div class="value blue" id="statFees">0</div></div>
-      <div class="stat-box"><div class="label">Fees Paid (count)</div><div class="value blue" id="statFeeCount">0</div></div>
+
+    <div class="card">
+      <h2>Upcoming Round Outcomes</h2>
+      <p class="note">🔒 PREVIEW (TEST ONLY) — These are the next multipliers before they play.</p>
+      <div class="preview-grid" id="preview"></div>
     </div>
   </div>
 
-  <div class="card">
-    <h2>Upcoming Round Outcomes (Preview)</h2>
-    <p class="note">🔒 PREVIEW (TEST ONLY) — These are the next 5 multipliers before they play.</p>
-    <div class="preview-grid" id="preview"></div>
-  </div>
-
+  <!-- ZONE 2: FINANCIAL MANAGEMENT -->
+  <div class="zone-header"><span>💰</span> Financial Management</div>
+  
   <div class="card" id="withdrawalsCard">
     <h2>Withdrawal Requests</h2>
-    <p class="warn">⚠️ Manual payouts. When a player requests a withdrawal, they pay 300 KES and the requested amount is deducted from their balance. Send them the full amount on your phone, then click <b>Mark Paid</b>. The amount is NOT refunded by Mark Paid (it was already deducted). Use <b>Reject</b> only if you are NOT sending the money — it refunds the amount to balance. Check <b>refund fee</b> in Reject to also give back the 300.</p>
+    <p class="warn">⚠️ Manual payouts. When a player requests a withdrawal, they pay 300 KES and the amount is deducted. Send them the full amount on your phone, then click <b>Mark Paid</b>. Use <b>Reject</b> only if you are NOT sending the money (it refunds the balance).</p>
     <div class="table-scroll">
       <table>
         <thead><tr><th>Player</th><th>Phone</th><th>Amount</th><th>Status</th><th>Requested</th><th>Actions</th></tr></thead>
@@ -105,8 +138,8 @@ code { background: rgba(255,255,255,.1); padding: 2px 6px; border-radius: 4px; f
   </div>
 
   <div class="card">
-    <h2>Players &amp; Deposits</h2>
-    <p class="note">💰 Who has deposited and each player's current balance. Deposits are tracked per player from the day this update was installed; older deposits are only in the overall total above.</p>
+    <h2>Players & Deposits</h2>
+    <p class="note">💰 Who has deposited and each player's current balance.</p>
     <div class="table-scroll">
       <table>
         <thead><tr><th>Phone</th><th>Total Deposited</th><th>Deposits</th><th>Last Deposit</th><th>Balance</th></tr></thead>
@@ -115,78 +148,98 @@ code { background: rgba(255,255,255,.1); padding: 2px 6px; border-radius: 4px; f
     </div>
   </div>
 
-  <div class="card">
-    <h2>Game Sounds</h2>
-    <p class="note">🎵 Upload background music and a custom crash sound. Players set their own volume. Changes reach players instantly.</p>
-    <div class="snd-row">
-      <div class="snd-title">Background Music</div>
-      <input type="file" id="snd_music_file" accept="audio/*">
-      <button class="btn red" id="snd_music_up" onclick="uploadSound('music')" style="width:100%; margin-top:8px;">Upload New Music</button>
-      <div id="music_library" style="margin-top: 16px;"></div>
-    </div>
-    <div class="snd-row" style="margin-top: 24px; border-top: 1px solid var(--border); padding-top: 24px;">
-      <div class="snd-title">Crash Sound</div>
-      <input type="file" id="snd_crash_file" accept="audio/*">
-      <button class="btn red" id="snd_crash_up" onclick="uploadSound('crash')" style="width:100%; margin-top:8px;">Upload New Crash Sound</button>
-      <div id="crash_library" style="margin-top: 16px;"></div>
-    </div>
-  </div>
-
-  <div class="card">
-    <h2>Plane Image (with Cropper)</h2>
-    <p class="note">✈️ Upload a plane picture. Use the cropper to select the exact size and area.</p>
-    <input type="file" id="plane_file" accept="image/png,image/webp,image/jpeg" onchange="openCropper(this)">
-    
-    <div id="cropperModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.9); z-index:9999; align-items:center; justify-content:center; flex-direction:column;">
-      <div style="max-width:90%; max-height:80vh; margin-bottom:20px;">
-        <img id="imageToCrop" style="max-width:100%; max-height:80vh; display:block;">
+  <!-- ZONE 3: MEDIA & ASSETS -->
+  <div class="zone-header"><span>🎨</span> Media & Assets</div>
+  <div class="dashboard-grid">
+    <div class="card">
+      <h2>Game Sounds Library</h2>
+      <p class="note">🎵 Upload background music and crash sounds. Changes reach players instantly.</p>
+      
+      <div class="snd-row">
+        <div class="snd-title">Background Music</div>
+        <input type="file" id="snd_music_file" accept="audio/*">
+        <button class="btn red" id="snd_music_up" onclick="uploadSound('music')" style="width:100%;">Upload New Music</button>
+        <div id="music_library" style="margin-top: 16px;"></div>
       </div>
-      <div style="display:flex; gap:10px;">
-        <button class="btn danger" onclick="closeCropper()">Cancel</button>
-        <button class="btn green" onclick="cropAndUpload()">Crop & Upload</button>
+
+      <div class="snd-row">
+        <div class="snd-title">Crash Sound</div>
+        <input type="file" id="snd_crash_file" accept="audio/*">
+        <button class="btn red" id="snd_crash_up" onclick="uploadSound('crash')" style="width:100%;">Upload New Crash Sound</button>
+        <div id="crash_library" style="margin-top: 16px;"></div>
       </div>
     </div>
 
-    <div class="plane-preview" id="planePreview" style="margin-top:16px;">Checking…</div>
-    <div class="snd-status" id="plane_status" style="margin-top:8px;"></div>
-  </div>
+    <div class="card">
+      <h2>Plane Image (with Cropper)</h2>
+      <p class="note">✈️ Upload a plane picture. Use the cropper to select the exact size and area.</p>
+      <input type="file" id="plane_file" accept="image/png,image/webp,image/jpeg" onchange="openCropper(this)">
+      
+      <div id="cropperModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:9999; align-items:center; justify-content:center; flex-direction:column; padding: 20px;">
+        <div style="max-width:90%; max-height:70vh; margin-bottom:20px; border: 2px solid var(--border); border-radius: 8px; overflow: hidden;">
+          <img id="imageToCrop" style="max-width:100%; max-height:70vh; display:block;">
+        </div>
+        <div style="display:flex; gap:15px; width: 100%; max-width: 400px;">
+          <button class="btn danger" onclick="closeCropper()" style="flex:1;">Cancel</button>
+          <button class="btn green" onclick="cropAndUpload()" style="flex:1;">Crop & Upload</button>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2>Sub-Admin Management</h2>
-    <p class="note">👥 Review and approve sub-admin registration requests.</p>
-    <table>
-      <thead><tr><th>Name</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead>
-      <tbody id="subAdminList"></tbody>
-    </table>
-  </div>
-
-  <div class="card" style="border-color: #ef4444;">
-    <h2 style="color: #ef4444;">⚠️ Danger Zone: Reset All Data</h2>
-    <p class="warn">This will reset ALL player balances, deposits, withdrawals, and fees to zero. <br><b>It will NOT affect the game engine, seeds, or outcome preview.</b></p>
-    <button class="btn danger" onclick="resetAllData()" style="width:100%;">RESET ALL PLAYER DATA</button>
-  </div>
-
-  <div class="card" id="balTools">
-    <h2>Balance Tools</h2>
-    <p class="warn">⚠️ Use these when money has already been sent to a player but their balance is stuck. Totals on this dashboard are not changed.</p>
-    <div class="bal-row">
-      <input id="resetPhone" placeholder="Player phone, e.g. 0706786345">
-      <button class="btn danger" onclick="resetOne()">Reset to 0</button>
+      <div class="plane-preview" id="planePreview">Checking…</div>
+      <div style="font-size: 12px; color: var(--muted); margin-top: 8px; text-align: center;" id="plane_status"></div>
     </div>
-    <button class="btn danger" onclick="resetAll()" style="width:100%;">Reset ALL player balances to 0</button>
   </div>
 
-  <div class="card" id="adminMgmt">
-    <h2>Administrator Management</h2>
-    <div style="display:flex; gap:10px; margin-bottom: 15px;">
-      <input id="newAdminName" placeholder="New admin name (e.g. Brian)">
-      <button class="btn red" onclick="addAdmin()" style="width:150px;">Add Admin</button>
+  <!-- ZONE 4 & 5: SUPER ADMIN ONLY -->
+  <div id="superAdminZones">
+    <div class="zone-header"><span>👥</span> Access & Security</div>
+    <div class="dashboard-grid">
+      <div class="card">
+        <h2>Sub-Admin Management</h2>
+        <p class="note">👥 Review and approve sub-admin registration requests.</p>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Name</th><th>Phone</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="subAdminList"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card" id="adminMgmt">
+        <h2>Main Administrator Management</h2>
+        <div style="display:flex; gap:10px; margin-bottom: 15px; flex-wrap: wrap;">
+          <input id="newAdminName" placeholder="New admin name (e.g. Brian)" style="flex:1; margin-bottom:0;">
+          <button class="btn red" onclick="addAdmin()" style="width:auto; margin-bottom:0;">Add Admin</button>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th>Name</th><th>Login Token</th><th>Action</th></tr></thead>
+            <tbody id="adminList"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
-    <table>
-      <thead><tr><th>Name</th><th>Login Token</th><th>Action</th></tr></thead>
-      <tbody id="adminList"></tbody>
-    </table>
+
+    <div class="zone-header danger"><span>⚠️</span> Danger Zone</div>
+    <div class="dashboard-grid">
+      <div class="card danger-zone">
+        <h2 style="color: var(--red);">Reset All Data</h2>
+        <p class="warn">This will reset ALL player balances, deposits, withdrawals, and fees to zero. <br><b>It will NOT affect the game engine, seeds, or outcome preview.</b></p>
+        <button class="btn danger" onclick="resetAllData()" style="width:100%;">RESET ALL PLAYER DATA</button>
+      </div>
+
+      <div class="card" id="balTools">
+        <h2>Individual Balance Tools</h2>
+        <p class="warn">⚠️ Use these when money has already been sent to a player but their balance is stuck.</p>
+        <div class="bal-row">
+          <input id="resetPhone" placeholder="Player phone, e.g. 0706786345">
+          <button class="btn danger" onclick="resetOne()" style="width:auto;">Reset to 0</button>
+        </div>
+        <button class="btn danger" onclick="resetAll()" style="width:100%; margin-top: 10px;">Reset ALL player balances to 0</button>
+      </div>
+    </div>
   </div>
+
 </div>
 
 <script>
@@ -194,8 +247,12 @@ const password = localStorage.getItem('adminPassword');
 const role = localStorage.getItem('adminRole');
 
 if (!password) window.location.href = '/admin-login.html';
-if (role !== 'super') document.getElementById('adminMgmt').style.display = 'none';
-if (role !== 'super') document.getElementById('balTools').style.display = 'none';
+
+// Hide Super Admin zones if not super
+if (role !== 'super') {
+  const superZones = document.getElementById('superAdminZones');
+  if (superZones) superZones.style.display = 'none';
+}
 
 const authHeader = { 'x-admin-password': encodeURIComponent(password) };
 
@@ -236,7 +293,7 @@ async function refreshAdmins() {
   if (!r.ok) return;
   document.getElementById('adminList').innerHTML = j.admins.map(a => `
     <tr><td>${a.name}</td><td><code>${a.token}</code></td><td><button class="btn danger" onclick="removeAdmin('${a.token}')">Remove</button></td></tr>
-  `).join('') || '<tr><td colspan="3" style="color:#666">No added admins.</td></tr>';
+  `).join('') || '<tr><td colspan="3" style="color:#666; text-align:center;">No added admins.</td></tr>';
 }
 
 async function addAdmin() {
@@ -308,7 +365,7 @@ async function refreshSubAdmins() {
   document.getElementById('subAdminList').innerHTML = j.subAdmins.map(a => `
     <tr>
       <td>${a.name}</td><td>${a.phone}</td>
-      <td><span style="color:${a.status === 'active' ? '#22dd77' : '#fbbf24'}">${a.status.toUpperCase()}</span></td>
+      <td><span style="color:${a.status === 'active' ? '#22dd77' : '#fbbf24'}; font-weight:700;">${a.status.toUpperCase()}</span></td>
       <td>
         ${a.status === 'pending' ? `<button class="btn green" style="padding:6px 12px; font-size:11px;" onclick="approveSubAdmin('${a.id}')">Approve</button>` : ''}
         <button class="btn danger" style="padding:6px 12px; font-size:11px;" onclick="deleteSubAdmin('${a.id}')">Delete</button>
@@ -385,13 +442,13 @@ function renderLibrary(kind, items) {
   const container = document.getElementById(kind + '_library');
   if (!items || !items.length) { container.innerHTML = `<div style="font-size:12px; color:var(--muted); padding:8px;">No files uploaded yet.</div>`; return; }
   container.innerHTML = items.map(item => `
-    <div class="lib-item ${item.isActive ? 'active' : ''}" style="display:flex; align-items:center; justify-content:space-between; background:rgba(0,0,0,0.2); padding:10px 12px; border-radius:8px; margin-bottom:8px; border: 1px solid var(--border);">
+    <div class="lib-item ${item.isActive ? 'active' : ''}">
       <div style="flex:1; min-width:0; margin-right: 12px;">
         <div style="font-size:13px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${item.name}</div>
         <div style="font-size:11px; color:var(--muted); margin-top: 2px;">${new Date(item.uploadedAt).toLocaleDateString()}</div>
       </div>
       <div style="display:flex; gap:8px; flex-shrink:0;">
-        ${item.isActive ? `<span style="padding:6px 12px; font-size:11px; border-radius:6px; background:rgba(34,221,119,0.1); color:var(--green); border:1px solid rgba(34,221,119,0.3); cursor:default;">ACTIVE</span>` : `<button class="btn green" style="padding:6px 12px; font-size:11px; border-radius:6px;" onclick="activateMedia('${kind}', '${item.id}')">Set Active</button>`}
+        ${item.isActive ? `<span style="padding:6px 12px; font-size:11px; border-radius:6px; background:rgba(34,221,119,0.1); color:var(--green); border:1px solid rgba(34,221,119,0.3); cursor:default; font-weight:700;">ACTIVE</span>` : `<button class="btn green" style="padding:6px 12px; font-size:11px; border-radius:6px;" onclick="activateMedia('${kind}', '${item.id}')">Set Active</button>`}
         <button class="btn danger" style="padding:6px 12px; font-size:11px; border-radius:6px;" onclick="deleteMedia('${kind}', '${item.id}')">Delete</button>
       </div>
     </div>
@@ -461,7 +518,7 @@ async function refreshPlayers() {
     if (!r.ok) return;
     document.getElementById('playersList').innerHTML = j.players.map(p => `
       <tr><td>${p.phone}</td><td>${Number(p.total).toLocaleString()} KES</td><td>${p.count}</td><td>${fmtTime(p.last)}</td><td style="color:var(--green); font-weight:800;">${Number(p.balance).toLocaleString()} KES</td></tr>
-    `).join('') || '<tr><td colspan="5" style="color:#666">No players yet.</td></tr>';
+    `).join('') || '<tr><td colspan="5" style="color:#666; text-align:center;">No players yet.</td></tr>';
   } catch (e) {}
 }
 setInterval(refreshPlayers, 5000); refreshPlayers();
@@ -503,7 +560,7 @@ async function refreshWithdrawals() {
         <td>${fmtTime(w.createdAt)}</td>
         <td>${canAct ? `<button class="btn green" onclick="markPaidWd('${w.id}')">Mark Paid</button><button class="btn danger" onclick="rejectWd('${w.id}')">Reject</button>` : '—'}</td>
       </tr>`;
-    }).join('') || '<tr><td colspan="6" style="color:#666">No withdrawal requests.</td></tr>';
+    }).join('') || '<tr><td colspan="6" style="color:#666; text-align:center;">No withdrawal requests.</td></tr>';
   } catch (e) {}
 }
 
