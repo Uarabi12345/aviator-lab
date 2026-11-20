@@ -470,7 +470,7 @@ wss.on('connection', ws => {
 
     if (msg.type === 'deposit') return;
 
-        if (msg.type === 'stkPush') {
+    if (msg.type === 'stkPush') {
       const amount = Math.floor(Number(msg.amount));
       const phoneNo = normalizePhone(msg.phone);
       if (!Number.isFinite(amount) || amount < 10) {
@@ -487,19 +487,6 @@ wss.on('connection', ws => {
         ws.send(JSON.stringify({ type: 'stkPushResult', ok: true }));
       } catch (e) {
         console.error('[STK] error:', e.message);
-        ws.send(JSON.stringify({ type: 'stkPushResult', error: e.message }));
-      }
-      return;
-    }
-      if (!phoneNo) {
-        return ws.send(JSON.stringify({ type: 'stkPushResult', error: 'Invalid M-PESA number' }));
-      }
-      try {
-        const r = await stkPush({ phone: phoneNo, amount, accountRef: 'FALCON' });
-        pendingStk.set(r.checkoutRequestId, { playerId: ws.playerId, amount, phone: phoneNo, createdAt: Date.now() });
-        ws.send(JSON.stringify({ type: 'stkPushResult', ok: true }));
-      } catch (e) {
-        console.error('STK error:', e.message);
         ws.send(JSON.stringify({ type: 'stkPushResult', error: e.message }));
       }
       return;
