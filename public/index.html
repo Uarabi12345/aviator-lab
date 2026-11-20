@@ -69,7 +69,7 @@ svg.grid { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .05
   transition: left .1s linear, top .1s linear, transform 0.1s linear; 
   filter: drop-shadow(0 0 15px var(--red)); z-index: 4; 
 }
-/* NEW: Fly away animation on crash */
+/* Fly away animation on crash */
 .plane.fly-away {
   transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
   transform: translate(300px, -300px) scale(0.5) !important;
@@ -822,12 +822,12 @@ ws.onmessage = e => {
     if (data.multiplier >= 10) { multEl.className = 'multiplier high'; }
     else if (data.multiplier >= 4) { multEl.className = 'multiplier mid'; }
     
-     if (data.state === 'crashed') {
+    if (data.state === 'crashed') {
       multEl.className = 'multiplier crashed'; stageEl.classList.add('crashed');
       ui[1].cash.disabled = true; ui[2].cash.disabled = true;
       autoActive1 = false; autoActive2 = false; playSound('crash'); 
       
-      // NEW: Make the plane zoom off the screen "peeeeeewwww!"
+      // Make the plane zoom off the screen "peeeeeewwww!"
       planeEl.classList.add('fly-away');
       planeImgEl.classList.add('fly-away');
       
@@ -838,6 +838,8 @@ ws.onmessage = e => {
       if (autoActive1 && data.multiplier >= Number(ui[1].auto.value)) { ws.send(JSON.stringify({ type: 'cashout', slot: 1 })); autoActive1 = false; }
       if (autoActive2 && data.multiplier >= Number(ui[2].auto.value)) { ws.send(JSON.stringify({ type: 'cashout', slot: 2 })); autoActive2 = false; }
     }
+  } // <--- THIS WAS THE MISSING BRACKET THAT BROKE EVERYTHING
+
   if (type === 'balance') balEl.textContent = Number(balance).toFixed(0);
   if (type === 'chat' && data) addRealChat(data.name, data.text, data.mine);
   if (type === 'chatHistory' && Array.isArray(data)) data.forEach(m => addRealChat(m.name, m.text, m.mine));
@@ -850,7 +852,7 @@ ws.onmessage = e => {
     addLeaderboardWin(data.name, Math.round(data.payout));
     showFlashWin(`🔥 <b>${maskPlayerName(data.name)}</b> just cashed out <b>${Math.round(data.payout)}</b> credits at ${Number(data.multiplier).toFixed(2)}x!`);
     
-    // NEW: Trigger the floating top-right notification
+    // Trigger the floating top-right notification
     showFloatingWin(data.name, data.payout, data.multiplier);
   }
   
@@ -937,7 +939,7 @@ function updateTrail(mult) {
   trailArea.setAttribute('d', linePath + ` L ${tipX.toFixed(1)} ${H} L ${sx} ${H} Z`);
   planeEl.style.left = (tipX / W * 100) + '%';
   planeEl.style.top = (tipY / H * 100) + '%';
-    const angle = Math.atan2(tipY - sy, tipX - sx) * 180 / Math.PI;
+  const angle = Math.atan2(tipY - sy, tipX - sx) * 180 / Math.PI;
   // Fixed: Removed "+ 180" so the plane faces forward (up and right)
   const rotation = angle; 
   planeEl.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
