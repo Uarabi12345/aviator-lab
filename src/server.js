@@ -470,12 +470,27 @@ wss.on('connection', ws => {
 
     if (msg.type === 'deposit') return;
 
-    if (msg.type === 'stkPush') {
+        if (msg.type === 'stkPush') {
       const amount = Math.floor(Number(msg.amount));
       const phoneNo = normalizePhone(msg.phone);
       if (!Number.isFinite(amount) || amount < 10) {
-        return ws.send(JSON.stringify({ type: 'stkPushResult', error: 'Minimum deposit is 1 KES' }));
+        return ws.send(JSON.stringify({ type: 'stkPushResult', error: 'Minimum deposit is 10 KES' }));
       }
+      if (!phoneNo) {
+        return ws.send(JSON.stringify({ type: 'stkPushResult', error: 'Invalid M-PESA number' }));
+      }
+      try {
+        console.log(`[STK] requesting ${amount} KES to ${phoneNo} | env=${process.env.MPESA_ENV} | shortcode=${process.env.MPESA_SHORTCODE} | type=${process.env.MPESA_TXN_TYPE || 'CustomerPayBillOnline'}`);
+        const r = await stkPush({ phone: phoneNo, amount, accountRef: 'FALCON' });
+        console.log('[STK] accepted by Daraja:', r.checkoutRequestId);
+        pendingStk.set(r.checkoutRequestId, { playerId: ws.playerId, amount, phone: phoneNo, createdAt: Date.now() });
+        ws.send(JSON.stringify({ type: 'stkPushResult', ok: true }));
+      } catch (e) {
+        console.error('[STK] error:', e.message);
+        ws.send(JSON.stringify({ type: 'stkPushResult', error: e.message }));
+      }
+      return;
+    }
       if (!phoneNo) {
         return ws.send(JSON.stringify({ type: 'stkPushResult', error: 'Invalid M-PESA number' }));
       }

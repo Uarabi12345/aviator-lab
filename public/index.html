@@ -223,6 +223,328 @@ svg.grid { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .05
 .btn.cancel:active:not(:disabled) { background: #a80116; }
 
 .plane-img { display: none; object-fit: contain; }
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE-FIRST AVIATOR OPTIMIZATION
+   ═══════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  /* Force full-screen game experience */
+  body {
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  .app-container {
+    flex-direction: column;
+    height: auto;
+    gap: 8px;
+    margin-top: 50px;
+    padding: 8px;
+  }
+
+  .game-section {
+    width: 100%;
+    gap: 8px;
+  }
+
+  /* Compact header for mobile */
+  header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 4px;
+    gap: 8px;
+  }
+
+  .logo {
+    font-size: 16px;
+    gap: 6px;
+  }
+
+  .logo .dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  .wallet-actions {
+    gap: 4px;
+    flex-wrap: nowrap;
+  }
+
+  .btn-wallet {
+    padding: 6px 10px;
+    font-size: 11px;
+    border-radius: 6px;
+  }
+
+  .logout-btn {
+    padding: 6px 10px;
+    font-size: 10px;
+  }
+
+  /* Full-width game stage */
+  .stage {
+    min-height: 280px;
+    height: 50vh;
+    border-radius: 16px;
+  }
+
+  .multiplier {
+    font-size: 72px;
+    letter-spacing: -3px;
+    top: 35%;
+  }
+
+  .state {
+    font-size: 10px;
+    letter-spacing: 4px;
+    top: 45%;
+  }
+
+  .timer {
+    font-size: 16px;
+    margin-top: 8px;
+  }
+
+  .balance {
+    top: 12px;
+    right: 12px;
+    font-size: 9px;
+  }
+
+  .balance strong {
+    font-size: 20px;
+  }
+
+  .plane {
+    width: 40px;
+    height: 30px;
+  }
+
+  /* Compact betting controls */
+  .controls {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .bet-panel {
+    padding: 10px;
+    gap: 8px;
+    border-radius: 12px;
+  }
+
+  .field {
+    gap: 4px;
+  }
+
+  .field label {
+    font-size: 9px;
+  }
+
+  .field input {
+    padding: 10px 8px;
+    font-size: 15px;
+    border-radius: 8px;
+  }
+
+  .field.auto-field {
+    flex: 0.3;
+    min-width: 60px;
+  }
+
+  .presets {
+    gap: 3px;
+    margin-top: 2px;
+  }
+
+  .preset-btn {
+    font-size: 10px;
+    padding: 3px;
+  }
+
+  .bet-panel .btn {
+    padding: 12px 8px;
+    font-size: 13px;
+    border-radius: 8px;
+  }
+
+  /* Compact history pills */
+  .history {
+    padding: 8px 12px;
+    gap: 10px;
+    border-radius: 12px;
+  }
+
+  .history h3 {
+    font-size: 10px;
+  }
+
+  .pill {
+    padding: 4px 10px;
+    font-size: 12px;
+  }
+
+  /* Collapsible sidebar */
+  .sidebar {
+    width: 100%;
+    height: 350px;
+    border-radius: 16px;
+  }
+
+  .sidebar-tabs {
+    border-radius: 16px 16px 0 0;
+  }
+
+  .sidebar-tab {
+    padding: 12px 0;
+    font-size: 11px;
+  }
+
+  .chat-list, .feed-list, .leaderboard-list {
+    padding: 12px;
+  }
+
+  .chat-msg {
+    font-size: 13px;
+  }
+
+  .chat-input-row {
+    padding: 10px;
+    gap: 6px;
+  }
+
+  .chat-input-row input {
+    padding: 8px 10px;
+    font-size: 13px;
+  }
+
+  .chat-send {
+    padding: 0 12px;
+    font-size: 18px;
+  }
+
+  .feed-item {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  .leader-item {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .leader-item .rank {
+    font-size: 18px;
+    width: 20px;
+  }
+
+  .leader-item .name {
+    font-size: 13px;
+  }
+
+  .leader-item .amt {
+    font-size: 14px;
+  }
+
+  /* Mobile-friendly modals */
+  .modal-box {
+    padding: 20px;
+    border-radius: 20px;
+    max-width: 95%;
+  }
+
+  .modal-title {
+    font-size: 18px;
+  }
+
+  .modal-desc {
+    font-size: 12px;
+  }
+
+  .modal-box input {
+    padding: 14px;
+    font-size: 16px;
+  }
+
+  .modal-actions {
+    gap: 8px;
+  }
+
+  .modal-actions .btn {
+    padding: 12px;
+    font-size: 13px;
+  }
+
+  /* Flash ticker for mobile */
+  .flash-ticker-wrap {
+    top: 110px;
+    left: 8px;
+    width: calc(100% - 16px);
+    height: 40px;
+  }
+
+  .flash-item {
+    padding: 8px 16px;
+    font-size: 12px;
+  }
+
+  /* Toast for mobile */
+  .toast {
+    bottom: 20px;
+    padding: 12px 24px;
+    font-size: 13px;
+    border-radius: 12px;
+  }
+}
+
+/* Extra small phones (iPhone SE, etc.) */
+@media (max-width: 375px) {
+  .stage {
+    min-height: 240px;
+    height: 45vh;
+  }
+
+  .multiplier {
+    font-size: 60px;
+  }
+
+  .balance strong {
+    font-size: 18px;
+  }
+
+  .bet-panel {
+    padding: 8px;
+  }
+
+  .field input {
+    padding: 8px 6px;
+    font-size: 14px;
+  }
+
+  .sidebar {
+    height: 300px;
+  }
+}
+
+/* Landscape mode on mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+  .app-container {
+    margin-top: 40px;
+  }
+
+  .stage {
+    height: 60vh;
+    min-height: 200px;
+  }
+
+  .sidebar {
+    height: 250px;
+  }
+
+  .multiplier {
+    font-size: 64px;
+  }
+}
 </style>
 </head>
 <body>
@@ -894,13 +1216,20 @@ function openQuickDeposit(amount) {
 function closeModal(type) {
   document.getElementById(type + 'Modal').classList.remove('active');
 }
+let depositTimer;
 function processDeposit() {
   const btn = document.getElementById('depBtn');
   const amt = Number(document.getElementById('depAmount').value);
   const ph = document.getElementById('depPhone').value.trim();
-  if (!(amt >= 1)) return showToast('Enter a valid deposit amount');
+  if (!(amt >= 10)) return showToast('Minimum deposit is 10 KES');
+  if (ws.readyState !== 1) return showToast('Not connected. Refresh the page.');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span> Check your phone...';
+  clearTimeout(depositTimer);
+  depositTimer = setTimeout(() => {
+    resetWalletBtns();
+    showToast('No prompt received. Check your phone/SIM and try again.');
+  }, 60000);
   ws.send(JSON.stringify({ type: 'stkPush', amount: amt, phone: ph }));
 }
 
@@ -920,6 +1249,7 @@ function processWithdraw() {
 }
 function resetWalletBtns() {
   clearTimeout(withdrawTimer);
+  clearTimeout(depositTimer);
   const d = document.getElementById('depBtn'), w = document.getElementById('witBtn');
   d.disabled = false; d.textContent = 'Deposit';
   w.disabled = false; w.textContent = 'Withdraw';
