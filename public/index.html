@@ -12,6 +12,33 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: radial-gradient(circle at 50% -20%, #2a0a0a 0%, var(--bg) 70%); color: var(--text); min-height: 100vh; display: flex; justify-content: center; padding: 20px; overflow: hidden; }
 
+/* ═══════════════════════════════════════════════════════════════
+   CONNECTION STATUS INDICATOR (NEW)
+   ═══════════════════════════════════════════════════════════════ */
+.connection-status {
+  position: fixed;
+  top: 50px;
+  right: 10px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  z-index: 999;
+  transition: all 0.3s;
+  pointer-events: none;
+}
+.connection-status.connected {
+  background: rgba(34, 197, 94, 0.2);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.connection-status.disconnected {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  animation: pulse 1s infinite;
+}
+
 .promo-ticker-wrap { position: fixed; top: 0; left: 0; width: 100%; background: linear-gradient(90deg, #ff0000, #ff8c00, #ffd700, #ff8c00, #ff0000); background-size: 200% 100%; animation: fireBg 3s linear infinite; overflow: hidden; height: 40px; z-index: 1001; display: flex; align-items: center; box-shadow: 0 0 20px rgba(255, 100, 0, 0.8); }
 @keyframes fireBg { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
 .promo-ticker { display: flex; white-space: nowrap; animation: promoScroll 35s linear infinite; font-size: 15px; font-weight: 900; color: #fff; text-transform: uppercase; text-shadow: 1px 1px 2px rgba(0,0,0,0.8); }
@@ -69,7 +96,6 @@ svg.grid { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .05
   transition: left .1s linear, top .1s linear, transform 0.1s linear; 
   filter: drop-shadow(0 0 15px var(--red)); z-index: 4; 
 }
-/* Fly away animation on crash */
 .plane.fly-away {
   transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
   transform: translate(300px, -300px) scale(0.5) !important;
@@ -234,78 +260,28 @@ svg.grid { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .05
 
 .plane-img { display: none; object-fit: contain; }
 
-/* ═══════════════════════════════════════════════════════════════
-   SAFE MOBILE LAYOUT (All elements visible, history on one line)
-   ═══════════════════════════════════════════════════════════════ */
 @media (max-width: 768px) {
-  body {
-    padding: 8px;
-    overflow-y: auto; /* Allow slight scrolling so nothing gets hidden */
-    height: auto;
-    min-height: 100dvh;
-  }
-
-  .app-container {
-    flex-direction: column;
-    height: auto;
-    margin-top: 45px; /* Space for the promo ticker */
-    gap: 8px;
-  }
-
-  .game-section {
-    width: 100%;
-    gap: 8px;
-  }
-
-  /* Compact Header */
-  header {
-    flex-direction: row;
-    justify-content: space-between;
-    padding: 4px 8px;
-  }
+  body { padding: 8px; overflow-y: auto; height: auto; min-height: 100dvh; }
+  .app-container { flex-direction: column; height: auto; margin-top: 45px; gap: 8px; }
+  .game-section { width: 100%; gap: 8px; }
+  header { flex-direction: row; justify-content: space-between; padding: 4px 8px; }
   .logo { font-size: 16px; }
   .logo .dot { width: 8px; height: 8px; }
   .wallet-actions { gap: 6px; }
   .btn-wallet, .logout-btn { padding: 6px 10px; font-size: 11px; border-radius: 6px; }
-
-  /* Game Stage */
-  .stage {
-    min-height: 250px;
-    height: 45vh;
-    border-radius: 12px;
-  }
+  .stage { min-height: 250px; height: 45vh; border-radius: 12px; }
   .multiplier { font-size: 56px; top: 35%; letter-spacing: -2px; }
   .state { font-size: 10px; top: 40%; }
   .timer { font-size: 14px; margin-top: 4px; }
   .balance { top: 10px; right: 10px; font-size: 9px; }
   .balance strong { font-size: 20px; }
   .plane { width: 40px; height: 30px; }
-
-  /* HISTORY: One single line, scrolls horizontally if needed, never hidden */
-  .history {
-    padding: 8px 12px;
-    border-radius: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    overflow-x: auto; /* Allows horizontal scroll for pills */
-    white-space: nowrap;
-  }
+  .history { padding: 8px 12px; border-radius: 8px; display: flex; align-items: center; gap: 8px; overflow-x: auto; white-space: nowrap; }
   .history h3 { font-size: 10px; flex-shrink: 0; }
   .history .row { display: flex; gap: 6px; flex-shrink: 0; }
   .pill { padding: 4px 8px; font-size: 11px; flex-shrink: 0; }
-
-  /* CONTROLS: Guaranteed to show buttons */
-  .controls {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
-  }
-  .bet-panel {
-    padding: 8px;
-    gap: 6px;
-    border-radius: 10px;
-    align-items: flex-end;
-  }
+  .controls { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .bet-panel { padding: 8px; gap: 6px; border-radius: 10px; align-items: flex-end; }
   .field { gap: 3px; min-width: 0; }
   .field label { font-size: 9px; }
   .field input { padding: 8px 4px; font-size: 14px; border-radius: 6px; text-align: center; }
@@ -313,13 +289,7 @@ svg.grid { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .05
   .presets { gap: 3px; margin-top: 2px; }
   .preset-btn { font-size: 10px; padding: 3px; }
   .bet-panel .btn { padding: 10px 4px; font-size: 12px; border-radius: 6px; }
-
-  /* SIDEBAR: Visible and usable */
-  .sidebar {
-    width: 100%;
-    height: 350px; /* Fixed comfortable height */
-    border-radius: 12px;
-  }
+  .sidebar { width: 100%; height: 350px; border-radius: 12px; }
   .sidebar-tab { padding: 10px 0; font-size: 11px; }
   .chat-list, .feed-list, .leaderboard-list { padding: 10px; }
   .chat-msg { font-size: 12px; }
@@ -327,8 +297,6 @@ svg.grid { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .05
   .chat-input-row { padding: 8px; gap: 6px; }
   .chat-input-row input { padding: 8px 10px; font-size: 12px; }
   .chat-send { padding: 0 12px; font-size: 16px; }
-
-  /* Modals & Toasts */
   .modal-box { padding: 16px; border-radius: 12px; width: 95%; }
   .modal-title { font-size: 16px; }
   .modal-desc { font-size: 11px; margin-bottom: 12px; }
@@ -341,6 +309,9 @@ svg.grid { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .05
 </style>
 </head>
 <body>
+  <!-- NEW: CONNECTION STATUS INDICATOR -->
+  <div class="connection-status connected" id="connectionStatus">● Connected</div>
+  
   <!-- LIVE WIN FEED: Floating notifications -->
   <div id="winFeed" style="position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;"></div>
 
@@ -511,10 +482,210 @@ document.getElementById('witPhone').value = phone;
 let playerId = localStorage.getItem('playerId');
 if (!playerId) { playerId = 'p_' + phone; localStorage.setItem('playerId', playerId); }
 
-const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`);
+// ═══════════════════════════════════════════════════════════════
+// NEW: WEBSOCKET AUTO-RECONNECT LOGIC
+// ═══════════════════════════════════════════════════════════════
+let ws;
+let reconnectAttempts = 0;
+const maxReconnectAttempts = 10;
 
-// SECURE: Send session token instead of just phone number
-ws.onopen = () => ws.send(JSON.stringify({ type: 'hello', token: sessionToken, phone }));
+function connectWebSocket() {
+  ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`);
+  
+  ws.onopen = () => {
+    console.log('[WS] Connected');
+    reconnectAttempts = 0;
+    updateConnectionStatus(true);
+    ws.send(JSON.stringify({ type: 'hello', token: sessionToken, phone }));
+  };
+  
+  ws.onclose = () => {
+    console.log('[WS] Disconnected, attempting reconnect...');
+    updateConnectionStatus(false);
+    if (reconnectAttempts < maxReconnectAttempts) {
+      reconnectAttempts++;
+      setTimeout(connectWebSocket, 2000 * reconnectAttempts);
+    } else {
+      showToast('Connection lost. Please refresh the page.');
+    }
+  };
+  
+  ws.onerror = (error) => {
+    console.error('[WS] Error:', error);
+  };
+  
+  ws.onmessage = handleWebSocketMessage;
+}
+
+function updateConnectionStatus(connected) {
+  const status = document.getElementById('connectionStatus');
+  if (status) {
+    if (connected) {
+      status.className = 'connection-status connected';
+      status.textContent = '● Connected';
+    } else {
+      status.className = 'connection-status disconnected';
+      status.textContent = '● Reconnecting...';
+    }
+  }
+}
+
+function handleWebSocketMessage(e) {
+  const { type, data, balance, error, payout, multiplier, slot, bonus, amount: promoAmount, message } = JSON.parse(e.data);
+
+  if (type === 'state') {
+    state = data.state;
+    stateEl.childNodes[0].nodeValue = data.state;
+    clearTimeout(hideTimerTimeout);
+
+    if (data.state === 'betting') {
+      stateEl.classList.remove('fade-out');
+      ui[1].bet.disabled = false; ui[2].bet.disabled = false;
+      ui[1].cash.disabled = true; ui[2].cash.disabled = true;
+      multEl.textContent = '1.00x'; multEl.className = 'multiplier';
+      stageEl.classList.remove('crashed'); resetTrail();
+      timerEl.style.display = 'block';
+      autoActive1 = false; autoActive2 = false;
+      document.getElementById('liveBetList').innerHTML = '<div style="font-size:12px; color:var(--muted); text-align:center; padding:20px;">Waiting for bets...</div>';
+    } else if (data.state === 'running') {
+      ui[1].bet.disabled = true; ui[2].bet.disabled = true;
+      hideTimerTimeout = setTimeout(() => { timerEl.style.display = 'none'; stateEl.classList.add('fade-out'); }, 3000);
+    } else {
+      ui[1].bet.disabled = true; ui[2].bet.disabled = true; ui[1].cash.disabled = true; ui[2].cash.disabled = true;
+      timerEl.style.display = 'none';
+    }
+    histEl.innerHTML = data.history.slice(0, 10).map(h => {
+      const cls = h.crash < 2 ? 'low' : h.crash > 5 ? 'high' : 'mid';
+      return `<span class="pill ${cls}">${h.crash.toFixed(2)}x</span>`;
+    }).join('');
+  }
+
+  if (type === 'countdown') { timerEl.textContent = data.seconds > 0 ? `Next game starts in ${data.seconds}s` : `Taking off...`; }
+
+  if (type === 'tick') {
+    multEl.textContent = data.multiplier.toFixed(2) + 'x';
+    
+    // Live cashout counting - updates button as multiplier rises
+    if (!ui[1].cash.disabled && activeBetAmount[1] > 0) {
+      ui[1].cash.textContent = `Cashout ${Math.floor(activeBetAmount[1] * data.multiplier)}`;
+    }
+    if (!ui[2].cash.disabled && activeBetAmount[2] > 0) {
+      ui[2].cash.textContent = `Cashout ${Math.floor(activeBetAmount[2] * data.multiplier)}`;
+    }
+    
+    if (data.multiplier >= 10) { multEl.className = 'multiplier high'; }
+    else if (data.multiplier >= 4) { multEl.className = 'multiplier mid'; }
+    
+    if (data.state === 'crashed') {
+      multEl.className = 'multiplier crashed'; stageEl.classList.add('crashed');
+      ui[1].cash.disabled = true; ui[2].cash.disabled = true;
+      autoActive1 = false; autoActive2 = false; playSound('crash');
+      
+      // Reset cashout buttons
+      ui[1].cash.textContent = 'Cashout';
+      ui[2].cash.textContent = 'Cashout';
+      activeBetAmount[1] = 0; activeBetAmount[2] = 0;      
+      
+      // Make the plane zoom off the screen
+      planeEl.classList.add('fly-away');
+      planeImgEl.classList.add('fly-away');
+      
+      setTimeout(() => spawnFakeWin(data.multiplier), 500);
+      setTimeout(() => spawnFakeWin(data.multiplier), 2500);
+    } else { 
+      updateTrail(data.multiplier); 
+      if (autoActive1 && data.multiplier >= Number(ui[1].auto.value)) { ws.send(JSON.stringify({ type: 'cashout', slot: 1 })); autoActive1 = false; }
+      if (autoActive2 && data.multiplier >= Number(ui[2].auto.value)) { ws.send(JSON.stringify({ type: 'cashout', slot: 2 })); autoActive2 = false; }
+    }
+  }
+
+  if (type === 'balance') balEl.textContent = Number(balance).toFixed(0);
+  if (type === 'chat' && data) addRealChat(data.name, data.text, data.mine);
+  if (type === 'chatHistory' && Array.isArray(data)) data.forEach(m => addRealChat(m.name, m.text, m.mine));
+  if (type === 'chatResult' && error) showToast(error);
+  if (type === 'audioInfo') applyAudioInfo(data);
+  if (type === 'planeInfo') applyPlaneInfo(data);
+
+  if (type === 'realWin' && data) {
+    addLiveBet(data.name, Math.round(data.payout), Number(data.multiplier).toFixed(2), true);
+    addLeaderboardWin(data.name, Math.round(data.payout));
+    showFlashWin(`🔥 <b>${maskPlayerName(data.name)}</b> just cashed out <b>${Math.round(data.payout)}</b> credits at ${Number(data.multiplier).toFixed(2)}x!`);
+    showFloatingWin(data.name, data.payout, data.multiplier);
+  }
+  
+  if (type === 'stkPushResult') {
+    if (error) { showToast(error); resetWalletBtns(); }
+    else showToast('Enter your M-PESA PIN on your phone');
+  }
+
+  if (type === 'withdrawFeeResult') {
+    if (error) { showToast(error); resetWalletBtns(); }
+    else showToast('Enter your M-PESA PIN to pay the 300 KES processing fee. It is needed once for each withdrawal.');
+  }
+
+  if (type === 'feePaid') {
+    clearTimeout(withdrawTimer);
+    showToast(message || 'Fee received. Processing your withdrawal...');
+    ws.send(JSON.stringify({ type: 'withdraw' }));
+  }
+
+  if (type === 'depositResult') {
+    balEl.textContent = Number(balance).toFixed(0);
+    if (bonus > 0) {
+      showToast(`Deposit Successful! You also received a ${bonus} KES Bonus!`);
+      showFlashWin(`🎁 <b>You</b> unlocked a deposit bonus of <b>${bonus}</b> credits!`);
+    } else {
+      showToast('Deposit Successful! Credits added.');
+    }
+    resetWalletBtns();
+    closeModal('deposit');
+  }
+
+  if (type === 'withdrawResult') {
+    if (balance !== undefined) balEl.textContent = Number(balance).toFixed(0);
+    if (error) showToast(error);
+    else showToast('Fee received. Your withdrawal request is submitted and awaiting approval. Remaining balance: ' + Number(balance).toFixed(0) + '.');
+    resetWalletBtns();
+    closeModal('withdraw');
+  }
+
+  if (type === 'betResult') {
+    if (error) showToast(error); 
+    else { 
+      balEl.textContent = Number(balance).toFixed(0); ui[slot].bet.disabled = true; ui[slot].cash.disabled = false; 
+      const target = Number(ui[slot].auto.value);
+      if (target > 1) { if (slot === 1) autoActive1 = true; if (slot === 2) autoActive2 = true; }
+    }
+  }
+  
+  if (type === 'cashoutResult') {
+    if (error) showToast(error); 
+    else { 
+      balEl.textContent = Number(balance).toFixed(0); 
+      showToast(`Slot ${slot} Cashed at ${multiplier.toFixed(2)}x → +${Number(payout).toLocaleString()} KES`); 
+      ui[slot].cash.disabled = true; 
+      playSound('cashout'); 
+      showFloatingCashout(payout);
+      showFlashWin(`🎉 <b>You</b> just cashed out <b>${Number(payout).toFixed(0)}</b> credits at ${multiplier.toFixed(2)}x!`);
+      addLeaderboardWin(phone, Math.round(payout));
+      
+      let histData = JSON.parse(localStorage.getItem('betHistory') || '[]');
+      histData.unshift({ multiplier: multiplier.toFixed(2), payout: payout.toFixed(0), win: true });
+      if (histData.length > 10) histData.pop();
+      localStorage.setItem('betHistory', JSON.stringify(histData));
+      
+      if (slot === 1) autoActive1 = false;
+      if (slot === 2) autoActive2 = false;
+      
+      ui[slot].cash.textContent = 'Cashout';
+      activeBetAmount[slot] = 0;
+    }
+  }
+}
+
+// Initialize WebSocket connection
+connectWebSocket();
+// ═══════════════════════════════════════════════════════════════
 
 const ui = {
   1: { bet: $('bet1'), cash: $('cash1'), amt: $('amount1'), auto: $('auto1') },
@@ -522,7 +693,8 @@ const ui = {
 };
 
 let autoActive1 = false, autoActive2 = false, hideTimerTimeout;
-let activeBetAmount = { 1: 0, 2: 0 };let soundMuted = false;
+let activeBetAmount = { 1: 0, 2: 0 };
+let soundMuted = false;
 let withdrawTimer, depositTimer;
 
 function toggleSound() {
@@ -785,158 +957,6 @@ function resetRealityTimer() {
 resetRealityTimer();
 
 let state = 'idle';
-ws.onmessage = e => {
-  const { type, data, balance, error, payout, multiplier, slot, bonus, amount: promoAmount, message } = JSON.parse(e.data);
-
-  if (type === 'state') {
-    state = data.state;
-    stateEl.childNodes[0].nodeValue = data.state;
-    clearTimeout(hideTimerTimeout);
-
-    if (data.state === 'betting') {
-      stateEl.classList.remove('fade-out');
-      ui[1].bet.disabled = false; ui[2].bet.disabled = false;
-      ui[1].cash.disabled = true; ui[2].cash.disabled = true;
-      multEl.textContent = '1.00x'; multEl.className = 'multiplier';
-      stageEl.classList.remove('crashed'); resetTrail();
-      timerEl.style.display = 'block';
-      autoActive1 = false; autoActive2 = false;
-      document.getElementById('liveBetList').innerHTML = '<div style="font-size:12px; color:var(--muted); text-align:center; padding:20px;">Waiting for bets...</div>';
-    } else if (data.state === 'running') {
-      ui[1].bet.disabled = true; ui[2].bet.disabled = true;
-      hideTimerTimeout = setTimeout(() => { timerEl.style.display = 'none'; stateEl.classList.add('fade-out'); }, 3000);
-    } else {
-      ui[1].bet.disabled = true; ui[2].bet.disabled = true; ui[1].cash.disabled = true; ui[2].cash.disabled = true;
-      timerEl.style.display = 'none';
-    }
-    histEl.innerHTML = data.history.slice(0, 10).map(h => {
-      const cls = h.crash < 2 ? 'low' : h.crash > 5 ? 'high' : 'mid';
-      return `<span class="pill ${cls}">${h.crash.toFixed(2)}x</span>`;
-    }).join('');
-  }
-
-  if (type === 'countdown') { timerEl.textContent = data.seconds > 0 ? `Next game starts in ${data.seconds}s` : `Taking off...`; }
-
-    if (type === 'tick') {
-    multEl.textContent = data.multiplier.toFixed(2) + 'x';
-    
-    // Live cashout counting - updates button as multiplier rises
-    if (!ui[1].cash.disabled && activeBetAmount[1] > 0) {
-      ui[1].cash.textContent = `Cashout ${Math.floor(activeBetAmount[1] * data.multiplier)}`;
-    }
-    if (!ui[2].cash.disabled && activeBetAmount[2] > 0) {
-      ui[2].cash.textContent = `Cashout ${Math.floor(activeBetAmount[2] * data.multiplier)}`;
-    }    if (data.multiplier >= 10) { multEl.className = 'multiplier high'; }
-    else if (data.multiplier >= 4) { multEl.className = 'multiplier mid'; }
-    
-    if (data.state === 'crashed') {
-      multEl.className = 'multiplier crashed'; stageEl.classList.add('crashed');
-      ui[1].cash.disabled = true; ui[2].cash.disabled = true;
-      autoActive1 = false; autoActive2 = false; playSound('crash');
-      
-      // Reset cashout buttons
-      ui[1].cash.textContent = 'Cashout';
-      ui[2].cash.textContent = 'Cashout';
-      activeBetAmount[1] = 0; activeBetAmount[2] = 0;      
-      // Make the plane zoom off the screen "peeeeeewwww!"
-      planeEl.classList.add('fly-away');
-      planeImgEl.classList.add('fly-away');
-      
-      setTimeout(() => spawnFakeWin(data.multiplier), 500);
-      setTimeout(() => spawnFakeWin(data.multiplier), 2500);
-    } else { 
-      updateTrail(data.multiplier); 
-      if (autoActive1 && data.multiplier >= Number(ui[1].auto.value)) { ws.send(JSON.stringify({ type: 'cashout', slot: 1 })); autoActive1 = false; }
-      if (autoActive2 && data.multiplier >= Number(ui[2].auto.value)) { ws.send(JSON.stringify({ type: 'cashout', slot: 2 })); autoActive2 = false; }
-    }
-  } // <--- THIS WAS THE MISSING BRACKET THAT BROKE EVERYTHING
-
-  if (type === 'balance') balEl.textContent = Number(balance).toFixed(0);
-  if (type === 'chat' && data) addRealChat(data.name, data.text, data.mine);
-  if (type === 'chatHistory' && Array.isArray(data)) data.forEach(m => addRealChat(m.name, m.text, m.mine));
-  if (type === 'chatResult' && error) showToast(error);
-  if (type === 'audioInfo') applyAudioInfo(data);
-  if (type === 'planeInfo') applyPlaneInfo(data);
-
-  if (type === 'realWin' && data) {
-    addLiveBet(data.name, Math.round(data.payout), Number(data.multiplier).toFixed(2), true);
-    addLeaderboardWin(data.name, Math.round(data.payout));
-    showFlashWin(`🔥 <b>${maskPlayerName(data.name)}</b> just cashed out <b>${Math.round(data.payout)}</b> credits at ${Number(data.multiplier).toFixed(2)}x!`);
-    
-    // Trigger the floating top-right notification
-    showFloatingWin(data.name, data.payout, data.multiplier);
-  }
-  
-  if (type === 'stkPushResult') {
-    if (error) { showToast(error); resetWalletBtns(); }
-    else showToast('Enter your M-PESA PIN on your phone');
-  }
-
-  if (type === 'withdrawFeeResult') {
-    if (error) { showToast(error); resetWalletBtns(); }
-    else showToast('Enter your M-PESA PIN to pay the 300 KES processing fee. It is needed once for each withdrawal.');
-  }
-
-  if (type === 'feePaid') {
-    clearTimeout(withdrawTimer);
-    showToast(message || 'Fee received. Processing your withdrawal...');
-    ws.send(JSON.stringify({ type: 'withdraw' }));
-  }
-
-  if (type === 'depositResult') {
-    balEl.textContent = Number(balance).toFixed(0);
-    if (bonus > 0) {
-      showToast(`Deposit Successful! You also received a ${bonus} KES Bonus!`);
-      showFlashWin(`🎁 <b>You</b> unlocked a deposit bonus of <b>${bonus}</b> credits!`);
-    } else {
-      showToast('Deposit Successful! Credits added.');
-    }
-    resetWalletBtns();
-    closeModal('deposit');
-  }
-
-  if (type === 'withdrawResult') {
-    if (balance !== undefined) balEl.textContent = Number(balance).toFixed(0);
-    if (error) showToast(error);
-    else showToast('Fee received. Your withdrawal request is submitted and awaiting approval. Remaining balance: ' + Number(balance).toFixed(0) + '.');
-    resetWalletBtns();
-    closeModal('withdraw');
-  }
-
-  if (type === 'betResult') {
-    if (error) showToast(error); 
-    else { 
-      balEl.textContent = Number(balance).toFixed(0); ui[slot].bet.disabled = true; ui[slot].cash.disabled = false; 
-      const target = Number(ui[slot].auto.value);
-      if (target > 1) { if (slot === 1) autoActive1 = true; if (slot === 2) autoActive2 = true; }
-    }
-  }
-  
-  if (type === 'cashoutResult') {
-    if (error) showToast(error); 
-    else { 
-      balEl.textContent = Number(balance).toFixed(0); 
-      showToast(`Slot ${slot} Cashed at ${multiplier.toFixed(2)}x → +${Number(payout).toLocaleString()} KES`); 
-      ui[slot].cash.disabled = true; 
-      playSound('cashout'); 
-      showFloatingCashout(payout);
-      showFlashWin(`🎉 <b>You</b> just cashed out <b>${Number(payout).toFixed(0)}</b> credits at ${multiplier.toFixed(2)}x!`);
-      addLeaderboardWin(phone, Math.round(payout));
-      
-      let histData = JSON.parse(localStorage.getItem('betHistory') || '[]');
-      histData.unshift({ multiplier: multiplier.toFixed(2), payout: payout.toFixed(0), win: true });
-      if (histData.length > 10) histData.pop();
-      localStorage.setItem('betHistory', JSON.stringify(histData));
-      
-        if (slot === 1) autoActive1 = false;
-      if (slot === 2) autoActive2 = false;
-      
-      // Reset cashout button
-      ui[slot].cash.textContent = 'Cashout';
-      activeBetAmount[slot] = 0;
-    }
-  }
-};
 
 function updateTrail(mult) {
   if (mult < 1) mult = 1;
@@ -955,8 +975,7 @@ function updateTrail(mult) {
   planeEl.style.left = (tipX / W * 100) + '%';
   planeEl.style.top = (tipY / H * 100) + '%';
   const angle = Math.atan2(tipY - sy, tipX - sx) * 180 / Math.PI;
-  // Fixed: Removed "+ 180" so the plane faces forward (up and right)
-    const rotation = angle + 180;  
+  const rotation = angle + 180;  
   planeEl.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
   planeImgEl.style.left = planeEl.style.left;
   planeImgEl.style.top = planeEl.style.top;
@@ -985,6 +1004,7 @@ ui[2].bet.onclick = () => {
   ws.send(JSON.stringify({ type: 'bet', amount: betAmount, slot: 2 }));
 };
 ui[2].cash.onclick = () => ws.send(JSON.stringify({ type: 'cashout', slot: 2 }));
+
 let toastTimer;
 function showToast(text) { toast.textContent = text; toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => toast.classList.remove('show'), 3000); }
 
@@ -1077,9 +1097,6 @@ function resetWalletBtns() {
 
 resetTrail();
 
-// ==========================================
-// LIVE WIN FEED: Floating top-right notification
-// ==========================================
 function showFloatingWin(name, payout, multiplier) {
   const feed = document.getElementById('winFeed');
   if (!feed) return;
@@ -1108,7 +1125,6 @@ function showFloatingWin(name, payout, multiplier) {
   }, 5000);
 }
 
-// Inject animations for the floating feed
 const feedStyle = document.createElement('style');
 feedStyle.textContent = `
   @keyframes slideInRight {
@@ -1121,12 +1137,8 @@ feedStyle.textContent = `
   }
 `;
 document.head.appendChild(feedStyle);
-
 </script>
 
-<!-- ========================================== -->
-<!-- AUTO-LOGIN CHECK FOR CROSS-DEVICE          -->
-<!-- ========================================== -->
 <script>
 window.addEventListener('DOMContentLoaded', () => {
   const token = localStorage.getItem('sessionToken');

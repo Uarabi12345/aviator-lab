@@ -15,7 +15,7 @@ import { registerUploads, getUploadInfo } from './uploads.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-app.set('trust proxy', 1);
+app.set('trust proxy', 1); // Trust Render's proxy for rate limiting
 const server = createServer(app);
 const wss = new WebSocketServer({ server });
 
@@ -119,7 +119,6 @@ app.post('/api/auth/register', (req, res) => {
   res.json({ token, playerId, phone: cleanPhone, firstName: usersDB[cleanPhone].firstName });
 });
 
-// NEW: Logout from ALL devices
 app.post('/api/auth/logout-all', (req, res) => {
   const token = String(req.headers['authorization'] || '').replace('Bearer ', '');
   const session = sessions.get(token);
@@ -188,7 +187,6 @@ app.post('/api/admin/balance/reset-all', (req, res) => {
   res.json({ ok: true, reset: n });
 });
 
-// NEW: Reset All Data (Keeps game engine seeds intact)
 app.post('/api/admin/reset-all-data', (req, res) => {
   if (!isSuper(getAdminPassword(req))) return res.status(403).json({ error: 'super only' });
   const { confirm } = req.body || {};
@@ -226,7 +224,6 @@ app.delete('/api/admin/remove', (req, res) => {
   res.json({ ok: true });
 });
 
-// NEW: Delete a withdrawal request permanently
 app.delete('/api/admin/withdrawals/:id', (req, res) => {
   if (!isAdmin(getAdminPassword(req))) return res.status(401).json({ error: 'unauthorized' });
   const id = req.params.id;
@@ -237,7 +234,6 @@ app.delete('/api/admin/withdrawals/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// NEW: Delete a player's deposit record (super only)
 app.delete('/api/admin/players/:phone', (req, res) => {
   if (!isSuper(getAdminPassword(req))) return res.status(403).json({ error: 'super only' });
   const phone = req.params.phone;
@@ -477,6 +473,11 @@ engine.on('countdown', data => broadcast({ type: 'countdown', data }));
 
 wss.on('connection', ws => {
   ws.playerId = null; ws.playerPhone = null;
+  
+  // NEW: Heartbeat tracking
+  ws.isAlive = true;
+  ws.on('pong', () => { ws.isAlive = true; });
+
   ws.messageCount = 0; ws.lastReset = Date.now();
   ws.send(JSON.stringify({ type: 'state', data: engine.snapshot() }));
   try {
@@ -592,6 +593,19 @@ wss.on('connection', ws => {
     }
   });
 });
+
+// NEW: Heartbeat to keep connections alive and detect dead connections
+setInterval(() => {
+  wss.clients.forEach(ws => {
+    if (!ws.isAlive) {
+      console.log('[WS] Terminating dead connection');
+      ws.terminate();
+      return;
+    }
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000); // Ping every 30 seconds
 
 function broadcast(msg) {
   const s = JSON.stringify(msg);
